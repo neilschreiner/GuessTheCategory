@@ -311,7 +311,7 @@
     </div>
 
     <div id="version-container">
-        <p id="versionTag" class="version-tag">ver: 1745-13JUL2025</p> <!-- Hardcoded version tag -->
+        <p id="versionTag" class="version-tag">ver: 1759-13JUL2025 - <a href="https://neilschreiner.github.io/">&copy; neil</a></p> <!-- Hardcoded version tag -->
     </div>
 
     <div id="confetti-container"></div> <!-- Confetti container -->
@@ -705,7 +705,7 @@
             function checkGuess() {
                 const playerGuess = guessInput.value.trim();
                 const correctAnswer = currentRow[maxClues].replace(/^"|"$/g, '').trim(); // Get raw correct answer
-
+                
                 // Input validation: if guess is empty, shake input box and return
                 if (playerGuess === '') {
                     messageDisplay.textContent = 'Please enter a guess.';
