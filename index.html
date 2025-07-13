@@ -37,6 +37,43 @@
             text-align: center;
             width: 100%;
             max-width: 600px;
+            position: relative; /* Needed for absolute positioning of child background */
+            overflow: hidden; /* To contain the background image if it overflows */
+            padding-bottom: 120px; /* Increased padding to make more space for the image and messages */
+        }
+
+        /* New div for background image inside game-container */
+        .game-background-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('GTC-12345QuestionMark.jpg');
+            background-repeat: no-repeat;
+            background-position: center top; /* Position it at the top center */
+            background-size: 80% auto; /* Adjust size to fit well */
+            opacity: 0.1; /* Make it subtle */
+            z-index: 0; /* Ensure it's behind content */
+        }
+
+        /* Image at the bottom of game-container */
+        .bottom-image {
+            position: absolute;
+            bottom: 20px; /* Adjusted bottom position to create more space below it */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px; /* Adjust size as needed */
+            height: auto;
+            opacity: 0.8; /* Make it slightly transparent */
+            z-index: 1; /* Ensure it's above the game-background-image */
+        }
+
+
+        /* Ensure foreground content is above the background image */
+        .difficulty-buttons, h1, .subtitle, table, .guess-section, #incorrectGuesses, #playAgainButton, #message {
+            position: relative; /* Bring these elements above the background image */
+            z-index: 1;
         }
 
         h1 {
@@ -103,7 +140,7 @@
         /* Set the width for the first column (Clue #) */
         th:first-child,
         td:first-child {
-            width: 20%;
+            width: 20%; /* Changed to 20% */
         }
 
         th {
@@ -283,6 +320,7 @@
 </head>
 <body>
     <div class="game-container">
+        <div class="game-background-image"></div> <!-- New div for background image -->
         <div class="difficulty-buttons">
             <button id="easyButton">Easy</button>
             <button id="mediumButton">Medium</button>
@@ -317,6 +355,8 @@
         <button id="playAgainButton" class="hidden">Play Again?</button>
 
         <p id="message"></p>
+
+        <img src="GTC-12345QuestionMark.jpg" alt="Question Mark Image" class="bottom-image"> <!-- Image added here -->
     </div>
 
     <div id="version-container">
@@ -412,7 +452,7 @@
 "A hot drink", "Made from dried leaves", "Often served with milk and sugar", "Comes in many varieties", "Popular in the UK", "Tea"
 "A large, flightless bird", "Native to Africa", "Known for its speed", "Lays the largest eggs", "Can be ridden in some places", "Ostrich"
 "A building for books", "People go there to read or study", "You can borrow books for free", "Has quiet reading areas", "Often has computers and Wi-Fi", "Library"
-"A round, orange fruit", "Has a thick peel", "Can be peeled and eaten", "Used for juice", "Rich in Vitamin C", "Orange"
+"A round, orange fruit", "Has a thick peel", "Can be peeled and eaten", "Used for juice", "Rich in Vitamin C", "Associated with sunshine", "Orange"
 "A place to watch movies", "Has a big screen and comfortable seats", "You buy tickets to enter", "Sells popcorn and drinks", "Dark inside during the show", "Movie Theater"
 "A small, green vegetable", "Grows in pods", "Often eaten steamed or boiled", "Sweet taste", "Good source of protein and fiber", "Pea"
 "A large, wild cat", "Known for its stripes", "Native to Asia", "A powerful predator", "Can roar loudly", "Tiger"
@@ -454,10 +494,10 @@
 "A curved yellow fruit", "Grows in bunches", "Peel before eating", "Favorite food of monkeys", "Good source of potassium", "Banana"
 "A board game", "Buy and sell properties", "Try to bankrupt opponents", "Roll dice to move", "Has properties like Park Place and Boardwalk", "Monopoly"
 "A carbonated drink", "Sweet and fizzy", "Comes in many flavors", "Served cold", "Can be regular or diet", "Soda"
-"A large ocean mammal", "Known for spouting water", "Has a blowhole", "Can be very large", "Sings complex songs underwater", "Whale"
-"A small biting insect", "Flies and buzzes", "Can transmit diseases", "Active in warm weather", "Makes a buzzing sound", "Mosquito"
+"A large, aquatic mammal", "Lives in the ocean", "Known for its blowhole", "Can be very large", "Sings complex songs underwater", "Whale"
+"A small, flying insect", "Known for biting", "Can spread diseases", "Active in warm weather", "Makes a buzzing sound", "Mosquito"
 "A type of footwear", "Worn on the foot and ankle", "Can be for sports or fashion", "Often made of canvas or leather", "Has laces", "Sneaker"
-"A green vegetable", "Looks like a small tree", "Often steamed or roasted", "Good for your health", "Part of the cruciferous family", "Broccoli"
+"A green vegetable", "Has a tree-like appearance", "Often steamed or roasted", "Good source of vitamins", "Part of the cabbage family", "Broccoli"
 `;
 
             // Medium CSV data (previously Hard + 200 new entries) embedded directly in the JavaScript
@@ -468,7 +508,7 @@
 "A field of study", "Deals with numbers and shapes", "Used in science and engineering", "Includes algebra, geometry, calculus", "Can be abstract or applied", "Mathematics"
 "A period of time", "Often associated with specific weather", "Four main types: spring, summer, autumn, winter", "Affects plants and animals", "Determines holidays and activities", "Season"
 "A natural phenomenon", "Involves light and sound", "Occurs during thunderstorms", "Can be dangerous", "Often followed by rain", "Lightning"
-"A type of art", "Uses a brush and pigments", "Can be realistic or abstract", "Displayed in galleries and museums", "Mona Lisa is an example", "Painting"
+"A type of art", "Uses a brush and pigments", "Can be realistic or abstract", "Displayed in galleries and museums", "Mona Lisa is example", "Painting"
 "A device for telling time", "Can be worn on the wrist", "Has hands or digital display", "Often a fashion accessory", "Can be automatic or battery-powered", "Watch"
 "A type of building", "Often tall with many floors", "Used for offices or apartments", "Found in cities", "Can have a lobby and elevators", "Skyscraper"
 "A small, fast-moving particle", "Carries an electric charge", "Orbits the nucleus of an atom", "Fundamental to electricity", "Discovered by J.J. Thomson", "Electron"
@@ -649,7 +689,8 @@
                     });
                     gameData = parsedData;
                     startGame();
-                } catch (error) {
+                }
+                catch (error) {
                     console.error('Error parsing game data:', error);
                     messageDisplay.textContent = 'Failed to parse game data. Please ensure the embedded data is correctly formatted.';
                     submitGuessButton.disabled = true;
@@ -705,7 +746,9 @@
                     currentClueIndex++;
                     document.getElementById(`clue${currentClueIndex}-row`).classList.remove('hidden');
                 } else {
-                    revealAnswer(false);
+                    // This 'else' block is intentionally left empty.
+                    // The game over logic for running out of clues is now handled
+                    // exclusively within the checkGuess function.
                 }
                 guessInput.focus();
             }
@@ -714,7 +757,7 @@
             function checkGuess() {
                 const playerGuess = guessInput.value.trim();
                 const correctAnswer = currentRow[maxClues].replace(/^"|"$/g, '').trim(); // Get raw correct answer
-                
+
                 // Input validation: if guess is empty, shake input box and return
                 if (playerGuess === '') {
                     messageDisplay.textContent = 'Please enter a guess.';
@@ -749,18 +792,24 @@
                     shakeTable();
                     setTimeout(() => {
                         messageDisplay.textContent = '';
-                        revealNextClue();
-                        if (currentClueIndex === maxClues && !isSimilarAnswer(playerGuess, correctAnswer)) { // Check similarity again for final guess
+                        // Determine if this was the final guess opportunity (after clue 5 is revealed)
+                        const isFinalGuessAttempt = (currentClueIndex === maxClues);
+
+                        if (isFinalGuessAttempt) {
+                            // If it was the 5th clue and they got it wrong, it's game over
                             messageDisplay.textContent = `Game Over! The answer was: "${currentRow[maxClues]}"`;
                             submitGuessButton.disabled = true;
                             guessInput.disabled = true;
                             submitGuessButton.classList.add('hidden');
-                            revealAnswer(false);
+                            revealAnswer(false); // Show all clues and answer
                             playAgainButton.classList.remove('hidden');
                             startSadEmojis();
                             body.classList.remove('correct-bg');
                             body.classList.add('incorrect-bg');
                             document.getElementById('answer-row').classList.add('lost-game'); // Apply lost-game class here
+                        } else {
+                            // Otherwise, reveal the next clue
+                            revealNextClue();
                         }
                     }, 600);
                 }
