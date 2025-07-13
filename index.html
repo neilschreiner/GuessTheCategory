@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guess the Category</title> <!-- Changed title here -->
+    <title>Guess the Category</title>
     <style>
         /* style.css content */
         body {
             font-family: Arial, sans-serif;
             display: flex;
-            justify-content: center;
-            align-items: flex-start; /* Align to top instead of center to prevent jumping */
+            flex-direction: column; /* Changed to column to stack children vertically */
+            justify-content: flex-start; /* Align to top */
+            align-items: center; /* Center horizontally */
             min-height: 100vh;
             background-color: #f4f4f4; /* Default background */
             margin: 0;
@@ -21,11 +22,11 @@
 
         /* New background colors */
         body.correct-bg {
-            background-color: #e0f7fa; /* Light blue */
+            background-color: #90CAF9; /* Slightly darker blue for win */
         }
 
         body.incorrect-bg {
-            background-color: #ffebee; /* Light red */
+            background-color: #FFB3B3; /* Slightly darker red for loss */
         }
 
         .game-container {
@@ -42,6 +43,18 @@
             color: #333;
             margin-top: 30px; /* Added more space above */
             margin-bottom: 30px; /* Adjusted space below */
+        }
+
+        .subtitle {
+            font-size: 0.9em;
+            color: black; /* Black text */
+            background-color: #f0f0f0; /* Light grey background */
+            padding: 15px 20px; /* Padding inside the box */
+            border-radius: 8px; /* Rounded corners for the box */
+            margin: 0 auto 50px auto; /* Center the box and add space below */
+            max-width: 310px; /* 50% of the table's max-width (600px) */
+            line-height: 1.4;
+            box-sizing: border-box; /* Include padding in width calculation */
         }
 
         .difficulty-buttons {
@@ -64,9 +77,15 @@
             background-color: #5a6268;
         }
 
-        .difficulty-buttons button.selected {
-            background-color: #007bff; /* Blue for selected */
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2); /* Pressed effect */
+        /* Specific colors for selected difficulty buttons */
+        #easyButton.selected {
+            background-color: #90EE90; /* Light Green */
+        }
+        #mediumButton.selected {
+            background-color: #A7D9F8; /* Lighter Blue */
+        }
+        #hardButton.selected {
+            background-color: #F08080; /* Light Red */
         }
 
         table {
@@ -81,8 +100,14 @@
             text-align: left;
         }
 
+        /* Set the width for the first column (Clue #) */
+        th:first-child,
+        td:first-child {
+            width: 15%;
+        }
+
         th {
-            background-color: #f2f2f2;
+            background-color: #e9e9e9; /* Light gray for table header */
             color: #555;
         }
 
@@ -99,6 +124,11 @@
         tr.correct-clue-revealed td {
             background-color: #333;
             color: white;
+        }
+
+        /* New style for answer row when game is lost */
+        tr.answer-row.lost-game td {
+            background-color: #FFDDDD; /* Light red for lost answer row */
         }
 
         .guess-section {
@@ -229,6 +259,17 @@
                 opacity: 0;
             }
         }
+
+        .version-tag {
+            font-size: 0.6em; /* Very small print */
+            color: #777;
+            margin-top: 10px; /* Space above the tag to push it below the game-container */
+        }
+
+        .version-container {
+            /* This div now naturally flows below game-container due to body's flex-direction: column */
+            /* No specific styling needed here unless you want to constrain its width or add padding */
+        }
     </style>
 </head>
 <body>
@@ -239,6 +280,7 @@
             <button id="hardButton">Hard</button>
         </div>
         <h1>Guess the Category!</h1>
+        <p class="subtitle">Guess a hidden category or phrase by receiving five clues, one at a time.</p>
         <table id="clueTable">
             <thead>
                 <tr>
@@ -268,6 +310,10 @@
         <p id="message"></p>
     </div>
 
+    <div id="version-container">
+        <p id="versionTag" class="version-tag">ver: 1745-13JUL2025</p> <!-- Hardcoded version tag -->
+    </div>
+
     <div id="confetti-container"></div> <!-- Confetti container -->
     <div id="emoji-container"></div> <!-- Emoji container -->
 
@@ -286,6 +332,7 @@
             const incorrectGuessesDisplay = document.getElementById('incorrectGuesses');
             const confettiContainer = document.getElementById('confetti-container');
             const emojiContainer = document.getElementById('emoji-container');
+            // Removed versionTag retrieval as it's now hardcoded
 
             let gameData = [];
             let currentRow = [];
@@ -294,6 +341,8 @@
             let confettiInterval;
             let sadEmojiInterval;
             let happyEmojiInterval;
+
+            // Removed setVersionTag() function as it's now hardcoded
 
             // Helper function to normalize strings for comparison
             function normalizeString(str) {
@@ -317,18 +366,9 @@
                 }
 
                 // Check if correct answer is contained within player's guess (less common for these examples)
-                // e.g., "math" in "mathematical operations" (this is handled by the above if correct contains player)
-                // For "Mathematical operations" vs "math", if playerGuess is "math", and correctAnswer is "Mathematical operations",
-                // normalizedCorrect.includes(normalizedPlayer) will be true.
-                // If playerGuess is "Mathematical operations" and correctAnswer is "math",
-                // normalizedPlayer.includes(normalizedCorrect) would be true.
                 if (normalizedPlayer.includes(normalizedCorrect) && normalizedCorrect.length > 2) {
                      return true;
                 }
-
-                // Additional logic for specific cases, e.g., "math" vs "mathematical operations"
-                // This is already covered by `includes` if we consider "mathematical operations" contains "math".
-                // Let's make sure to check for common root words if needed, but for now, includes is sufficient.
 
                 return false;
             }
@@ -362,8 +402,8 @@
 "A type of music", "Often played with guitars and drums", "Has a strong beat", "Popular with young people", "Can be loud and energetic", "Rock"
 "A hot drink", "Made from dried leaves", "Often served with milk and sugar", "Comes in many varieties", "Popular in the UK", "Tea"
 "A large, flightless bird", "Native to Africa", "Known for its speed", "Lays the largest eggs", "Can be ridden in some places", "Ostrich"
-"A building for books", "People go there to read or study", "You can borrow books for free", "Has quiet areas", "Often has computers and Wi-Fi", "Library"
-"A round, orange fruit", "Has a thick peel", "Can be eaten fresh or juiced", "Rich in Vitamin C", "Associated with sunshine", "Orange"
+"A building for books", "People go there to read or study", "You can borrow books for free", "Has quiet reading areas", "Often has computers and Wi-Fi", "Library"
+"A round, orange fruit", "Has a thick peel", "Can be peeled and eaten", "Used for juice", "Rich in Vitamin C", "Orange"
 "A place to watch movies", "Has a big screen and comfortable seats", "You buy tickets to enter", "Sells popcorn and drinks", "Dark inside during the show", "Movie Theater"
 "A small, green vegetable", "Grows in pods", "Often eaten steamed or boiled", "Sweet taste", "Good source of protein and fiber", "Pea"
 "A large, wild cat", "Known for its stripes", "Native to Asia", "A powerful predator", "Can roar loudly", "Tiger"
@@ -375,66 +415,14 @@
 "A small, flying insect", "Known for biting", "Can spread diseases", "Active in warm weather", "Makes a buzzing sound", "Mosquito"
 "A type of footwear", "Worn on the foot and ankle", "Can be for sports or fashion", "Often made of canvas or leather", "Has laces", "Sneaker"
 "A green vegetable", "Has a tree-like appearance", "Often steamed or roasted", "Good source of vitamins", "Part of the cabbage family", "Broccoli"
-"A place where you sleep", "Has a bed and pillows", "Often has a closet for clothes", "Can be messy or tidy", "You spend a lot of time here", "Bedroom"
-"A small, furry animal", "Known for hopping", "Eats carrots and lettuce", "Has long ears", "Can be a pet or wild", "Rabbit"
-"A red fruit", "Often used in salads or sauces", "Grows on vines", "Can be sliced or diced", "Ketchup is made from it", "Tomato"
-"A type of vehicle", "Has four wheels", "Used for transportation", "You drive it on roads", "Can be a sedan, SUV, or truck", "Car"
-"A sweet, sticky substance", "Made by bees", "Often used as a sweetener", "Can be light or dark", "Goes well with toast", "Honey"
-"A large, domestic animal", "Known for giving milk", "Eats grass", "Often found on farms", "Can be black and white", "Cow"
-"A place to cook food", "Has a stove and oven", "Often has a refrigerator", "Where meals are prepared", "Can be small or large", "Kitchen"
-"A small, round object", "Used in many games", "Can bounce or roll", "Made of rubber or plastic", "Soccer, basketball, tennis all use one", "Ball"
-"A type of weather", "Frozen water falling from the sky", "White and fluffy", "Can be used to build snowmen", "Makes the ground slippery", "Snow"
-"A hot meal", "Often eaten for breakfast", "Made from eggs", "Can be scrambled or fried", "Goes well with bacon", "Eggs"
-"A place to swim", "Can be indoors or outdoors", "Filled with water", "Often found at hotels or gyms", "You can cool off here", "Swimming Pool"
-"A small, winged creature", "Often colorful", "Starts as a caterpillar", "Flies from flower to flower", "Symbol of transformation", "Butterfly"
-"A long, green vegetable", "Often eaten raw in salads", "Has a crunchy texture", "Can be sliced or diced", "Often paired with dip", "Cucumber"
-"A type of clothing", "Worn on the upper body", "Has sleeves and a collar", "Can be short or long-sleeved", "Often worn with a tie", "Shirt"
-"A place to sit", "Has a back and legs", "Can be made of wood or metal", "Found in homes and offices", "Used for dining or working", "Chair"
-"A type of weather", "Strong winds and rain", "Can cause damage to buildings", "Has an eye in the center", "Named alphabetically", "Hurricane"
-"A sweet, juicy fruit", "Often red or green", "Has a core with seeds", "Grows on trees", "Popular snack", "Apple"
-"A place to shop", "Has many different stores", "Sells clothes, electronics, food", "Often has a food court", "Can be very large and busy", "Mall"
-"A small, domestic animal", "Known for purring", "Chases mice", "Has whiskers and a tail", "Can be a pet", "Cat"
-"A type of bird", "Known for its beautiful feathers", "Can mimic human speech", "Often kept as a pet", "Can be green, blue, or yellow", "Parrot"
-"A place to eat", "Sells food and drinks", "You sit at tables or booths", "You pay for your meal", "Can be fast food or fine dining", "Restaurant"
-"A cold, sweet treat", "Made from fruit juice and sugar", "Often served on a stick", "Melts in warm weather", "Comes in many flavors", "Popsicle"
-"A type of footwear", "Worn on the foot", "Can be open or closed-toed", "Often worn in warm weather", "Has a flat sole", "Sandal"
-"A large, green fruit", "Has a hard rind", "Sweet and juicy inside", "Often eaten in summer", "Has many black seeds", "Watermelon"
-"A type of plant", "Has a tall stem and leaves", "Grows in fields", "Used to make bread and pasta", "Harvested by farmers", "Wheat"
-"A place to play", "Has swings and slides", "Often found in parks or schools", "Children love to go here", "Can be sandy or grassy", "Playground"
-"A small, domestic animal", "Known for squeaking", "Often kept in cages", "Eats seeds and vegetables", "Has a short tail", "Hamster"
-"A type of weather", "Water vapor in the air", "Makes it hard to see", "Often occurs in the morning", "Can be thick or thin", "Fog"
-"A place to keep money", "Can be made of leather or fabric", "Carried in a pocket or purse", "Holds cards and bills", "Has a clasp or zipper", "Wallet"
-"A type of clothing", "Worn on the legs", "Made of denim", "Often blue", "Has pockets and a zipper", "Jeans"
-"A place to grow plants", "Has soil and sunlight", "You water the plants regularly", "Can have flowers or vegetables", "Often found in backyards", "Garden"
-"A small, domestic bird", "Known for singing", "Often kept in a cage", "Eats seeds", "Can be yellow or green", "Canary"
-"A type of transportation", "Flies in the sky", "Has wings and engines", "Carries passengers or cargo", "Lands at airports", "Airplane"
-"A hot drink", "Made from ground beans", "Often drunk in the morning", "Can be black or with milk", "Has caffeine", "Coffee"
-"A place to read books", "Has many shelves", "You can borrow books for free", "Often has quiet areas", "Has computers and Wi-Fi", "Library"
-"A type of footwear", "Worn on the foot", "Covers the ankle", "Can be for warmth or fashion", "Often made of leather or suede", "Boot"
-"A place to exercise", "Has weights and machines", "People go there to get fit", "Often has trainers", "Can be busy or quiet", "Gym"
-"A small, domestic animal", "Known for being playful", "Has soft fur", "Often kept as a pet", "Can be a guinea pig or hamster", "Rodent"
-"A type of weather", "A sudden, heavy fall of rain", "Often short-lived", "Can be accompanied by thunder", "Makes a loud noise on the roof", "Downpour"
-"A place to buy clothes", "Has changing rooms", "Sells shirts, pants, dresses", "You try on items before buying", "Can be a boutique or department store", "Clothing Store"
-"A small, domestic animal", "Known for its quills", "Rolls into a ball when scared", "Eats insects and fruit", "Nocturnal", "Hedgehog"
-"A type of music", "Often played with violins and pianos", "Has complex arrangements", "Performed by orchestras", "Can be instrumental or vocal", "Classical"
-"A hot drink", "Made from tea leaves", "Often served with milk and sugar", "Comes in many varieties", "Popular in the UK", "Tea"
-"A large, flightless bird", "Native to Africa", "Known for its speed", "Lays the largest eggs", "Can be ridden in some places", "Ostrich"
-"A building for books", "People go there to read or study", "You can borrow books for free", "Has quiet areas", "Often has computers and Wi-Fi", "Library"
-"A round, orange fruit", "Has a thick peel", "Can be eaten fresh or juiced", "Rich in Vitamin C", "Associated with sunshine", "Orange"
-"A place to watch movies", "Has a big screen and comfortable seats", "You buy tickets to enter", "Sells popcorn and drinks", "Dark inside during the show", "Movie Theater"
-"A small, green vegetable", "Grows in pods", "Often eaten steamed or boiled", "Sweet taste", "Good source of protein and fiber", "Pea"
-"A large, wild cat", "Known for its stripes", "Native to Asia", "A powerful predator", "Can roar loudly", "Tiger"
-"A game played with cards", "Many different variations", "Can be for one or more players", "Involves strategy and luck", "Often played for fun or money", "Poker"
-"A yellow fruit", "Grows in tropical climates", "Has a curved shape", "Peel before eating", "Favorite food of monkeys", "Banana"
-"A popular board game", "Involves buying and selling properties", "Uses dice and tokens", "Goal is to bankrupt opponents", "Has a famous top hat piece", "Monopoly"
-"A cold, sweet drink", "Often carbonated", "Comes in many flavors", "Served in bottles or cans", "Can be diet or regular", "Soda"
-"A large, aquatic mammal", "Lives in the ocean", "Known for its blowhole", "Can be very large", "Sings complex songs underwater", "Whale"
-"A small, flying insect", "Known for biting", "Can spread diseases", "Active in warm weather", "Makes a buzzing sound", "Mosquito"
-"A type of footwear", "Worn on the foot and ankle", "Can be for sports or fashion", "Often made of canvas or leather", "Has laces", "Sneaker"
-"A green vegetable", "Has a tree-like appearance", "Often steamed or roasted", "Good source of vitamins", "Part of the cabbage family", "Broccoli"
-"A place to learn", "Has teachers and students", "You go there to study", "Can be elementary or high", "Has classrooms and a library", "School"
-"A furry pet", "Known for purring", "Chases mice", "Likes to nap in sunbeams", "Has whiskers and a tail", "Cat"
-"A round, red fruit", "Grows on trees", "Can be eaten raw or in pies", "Keeps the doctor away", "Crisp and juicy", "Apple"
+"You wear it on your head", "Keeps you warm or blocks sun", "Can be made of wool or straw", "Different styles like baseball or cowboy", "Often has a brim", "Hat"
+"You sit on it", "Has four legs and a back", "Found in homes or offices", "Used for dining or working", "Can be made of wood or metal", "Chair"
+"A place to sleep", "Has a mattress and pillows", "Found in a bedroom", "You lie down on it at night", "Can be single, double, or king size", "Bed"
+"A place to wash hands", "Has a faucet and drain", "Found in a bathroom or kitchen", "Water comes out of it", "Can be ceramic or metal", "Sink"
+"You use it to see at night", "Needs batteries", "Has a light bulb", "You hold it in your hand", "Good for camping or power outages", "Flashlight"
+"You wear them on your hands", "Keeps them warm", "Comes in pairs", "Can be made of wool or leather", "Used in cold weather", "Gloves"
+"A place to store clothes", "Has hangers and shelves", "Found in a bedroom", "You open its doors", "Can be walk-in or built-in", "Closet"
+"A small, round fruit", "Often red or green", "Grows on trees", "Used in pies or eaten fresh", "Keeps the doctor away", "Apple"
 "A yellow citrus fruit", "Very sour", "Used in lemonade", "Rich in Vitamin C", "Often sliced for drinks", "Lemon"
 "A large body of water", "Salty and vast", "Home to fish and whales", "Has waves and currents", "Covers most of the Earth", "Ocean"
 "A domesticated animal", "Known for barking", "Loyal and friendly", "Can be a guard or a companion", "Comes in many breeds", "Dog"
@@ -446,14 +434,14 @@
 "A green vegetable", "Has many layers", "Can make you cry when cut", "Used in salads and cooking", "Has a strong smell", "Onion"
 "A small rodent", "Known for bushy tail", "Climbs trees", "Eats nuts and seeds", "Often seen in parks", "Squirrel"
 "A genre of music", "Often loud and energetic", "Uses guitars, drums, bass", "Popular with young people", "Artists like Queen and Led Zeppelin", "Rock"
-"A warm drink", "Made from leaves steeped in hot water", "Can be black, green, or herbal", "Often served with milk or lemon", "Popular in the morning or afternoon", "Tea"
-"A large flightless bird", "Native to Africa", "Known for its speed", "Lays the largest eggs", "Has long legs and neck", "Ostrich"
+"A warm drink", "Made from leaves steeped in hot water", "Can be black, green, or herbal", "Often served with milk and lemon", "Popular in the morning or afternoon", "Tea"
+"A large flightless bird", "Native to Africa", "Known for its speed", "Lays the largest eggs", "Can be ridden in some places", "Ostrich"
 "A place for books", "You can borrow stories", "Has quiet reading areas", "Often has computers and Wi-Fi", "A public resource for knowledge", "Library"
 "A round, citrus fruit", "Orange in color", "Can be peeled and eaten", "Used for juice", "Rich in Vitamin C", "Orange"
 "A place to watch movies", "Has a big screen", "Sells popcorn and candy", "You buy tickets to enter", "Dark inside during the show", "Movie Theater"
 "A small green vegetable", "Grows in pods", "Often found in frozen bags", "Sweet when cooked", "A good source of fiber", "Pea"
 "A striped wild cat", "Native to Asia", "A powerful hunter", "Known for its roar", "Largest cat species", "Tiger"
-"A card game", "Involves betting and strategy", "Players try to get the best hand", "Can be played with friends or in casinos", "Often associated with chips", "Poker"
+"A card game", "Involves betting and and strategy", "Players try to get the best hand", "Can be played with friends or in casinos", "Often associated with chips", "Poker"
 "A curved yellow fruit", "Grows in bunches", "Peel before eating", "Favorite food of monkeys", "Good source of potassium", "Banana"
 "A board game", "Buy and sell properties", "Try to bankrupt opponents", "Roll dice to move", "Has properties like Park Place and Boardwalk", "Monopoly"
 "A carbonated drink", "Sweet and fizzy", "Comes in many flavors", "Served cold", "Can be regular or diet", "Soda"
@@ -565,36 +553,6 @@
 "A type of energy", "Generated from the wind", "Used in wind turbines", "Clean and renewable", "Harvested in windy areas", "Wind Energy"
 "A type of plant", "A large, woody plant with a single main stem", "Produces leaves and branches", "Can live for many years", "Provides oxygen and shade", "Tree"
 "A type of musical instrument", "Produces sound by striking it", "Includes drums, cymbals, xylophones", "Provides rhythm and texture", "Used in many genres of music", "Percussion Instrument"
-"A small, furry mammal", "Known for burrowing", "Often found in gardens", "Eats worms and insects", "Has poor eyesight", "Mole"
-"A type of footwear", "Worn for warmth and comfort indoors", "Often soft and fluffy", "Has a non-slip sole", "Worn before bed", "Slippers"
-"A place to buy books", "Has many shelves filled with titles", "Often has a cafe", "You can browse for hours", "Can be independent or a chain", "Bookstore"
-"A type of weather", "Tiny ice pellets falling from the sky", "Often bounces when it hits the ground", "Can be mixed with rain or snow", "Forms in cold clouds", "Sleet"
-"A common household appliance", "Used to clean floors", "Has a bag or canister to collect dirt", "Uses suction power", "Can be upright or handheld", "Vacuum Cleaner"
-"A type of vehicle", "Used for public transport in cities", "Runs on tracks", "Powered by electricity", "Can be a streetcar or subway car", "Tram"
-"A type of fruit", "Small and round, often red or black", "Grows on bushes or trees", "Sweet or tart taste", "Used in pies or jams", "Berry"
-"A place to grow food", "Often has rows of plants", "Requires sunlight and water", "Can be a farm or a small plot", "Produces vegetables or fruits", "Farm"
-"A type of animal", "Known for its long neck and humps", "Lives in deserts", "Can store water for long periods", "Used for transport or milk", "Camel"
-"A type of music", "Often features improvisation", "Originated in African-American communities", "Has a strong rhythm and blue notes", "Artists like Louis Armstrong", "Jazz"
-"A place to store food", "Keeps items cold", "Has shelves and drawers", "Found in a kitchen", "Essential for keeping food fresh", "Refrigerator"
-"A type of weather", "A visible electrical discharge", "Occurs during thunderstorms", "Followed by thunder", "Can strike objects on the ground", "Lightning"
-"A type of game", "Played on a checkered board", "Uses pieces like pawns, rooks, knights", "Goal is to checkmate the king", "Requires strategy and foresight", "Chess"
-"A type of building", "Used for storing and displaying art", "Has various collections", "People visit to see paintings and sculptures", "Can be large or small", "Art Gallery"
-"A type of tree", "Known for its broad leaves", "Sheds leaves in autumn", "Oak, maple, birch are examples", "Provides shade", "Deciduous Tree"
-"A type of clothing", "Worn on the feet inside shoes", "Comes in pairs", "Can be ankle, crew, or knee-high", "Made of cotton or wool", "Socks"
-"A place to relax outdoors", "Has benches and trees", "Often has playgrounds or walking paths", "Public space in a city", "Good for picnics or strolls", "Park"
-"A type of animal", "A large, flightless bird", "Native to Australia", "Known for its long neck and legs", "Fast runner", "Emu"
-"A type of food", "Long and thin, made from dough", "Boiled and served with sauce", "Italian origin", "Spaghetti, penne, lasagna are examples", "Pasta"
-"A type of transportation", "Has a large body and many windows", "Used for public transport on roads", "Follows a fixed route", "Driven by a driver", "Bus"
-"A type of fruit", "Small and round, often red or green", "Grows in bunches on vines", "Used to make wine", "Sweet or tart", "Grape"
-"A type of weather", "Water vapor condensed into tiny droplets", "Forms clouds", "Can fall as rain, snow, or hail", "Essential for life", "Precipitation"
-"A type of building", "Used for religious services", "Often has a steeple or minaret", "Place of worship for a community", "Can be a church, mosque, or temple", "Religious Building"
-"A type of energy", "Produced by the sun", "Used in solar panels", "Clean and renewable", "Can power homes and businesses", "Solar Energy"
-"A type of animal", "A large, powerful marine mammal", "Known for its tusks", "Lives in Arctic waters", "A type of seal", "Walrus"
-"A type of weather phenomenon", "A visible mass of water droplets or ice crystals in the atmosphere", "Can be white or gray", "Indicates weather conditions", "Forms in various shapes", "Cloud"
-"A field of study", "Examines the Earth's atmosphere and weather patterns", "Includes forecasting and climate science", "Uses data from satellites and radar", "Aims to predict weather", "Meteorology"
-"A type of energy", "Generated from the wind", "Used in wind turbines", "Clean and renewable", "Harvested in windy areas", "Wind Energy"
-"A type of plant", "A large, woody plant with a single main stem", "Produces leaves and branches", "Can live for many years", "Provides oxygen and shade", "Tree"
-"A type of musical instrument", "Produces sound by striking it", "Includes drums, cymbals, xylophones", "Provides rhythm and texture", "Used in many genres of music", "Percussion Instrument"
 `;
 
             // Hard CSV data (NEW from uploaded hard.csv and hard2.csv and hard3.csv) embedded directly in the JavaScript
@@ -624,7 +582,7 @@
 "A field of study", "Examines the origins and development of human language", "Includes phonetics, syntax, semantics", "Studies how languages change over time", "Aims to understand linguistic structures", "Linguistics"
 "A type of animal", "A large, flightless bird", "Native to South America", "Known for its long legs and neck", "Similar to an ostrich but smaller", "Rhea"
 "A type of building", "Used for performing scientific experiments", "Often found in schools or research institutions", "Has specialized equipment and safety protocols", "Can be wet or dry", "Laboratory"
-"A type of energy", "Produced by the decay of radioactive isotopes", "Used in nuclear power plants", "Can be dangerous if released", "Associated with atomic bombs", "Nuclear Fission"
+"A type of energy", "Produced by the decay of radioactive isotopes", "Used in nuclear power plants", "Can be dangerous if uncontrolled", "Associated with bombs", "Nuclear Fission"
 "A branch of philosophy", "Studies the nature of moral principles", "Asks questions about right and wrong", "Includes deontology, utilitarianism, virtue ethics", "Guides human behavior", "Ethics"
 "A historical period", "The period of European history from the 14th to the 17th century", "Marked by a renewed interest in classical art and learning", "Followed the Middle Ages", "Led to major scientific and artistic advancements", "Renaissance"
 "A unit of time", "Equal to 1,000 years", "Often used in historical contexts", "The first millennium, second millennium", "From Latin 'mille'", "Millennium"
@@ -647,7 +605,6 @@
             // Function to load the CSV data from the embedded string
             function loadCSVData(csvString) {
                 try {
-                    // Use a Set to store unique rows (clue + answer combination)
                     const uniqueRows = new Set();
                     const parsedData = [];
 
@@ -655,11 +612,30 @@
                         const cells = row.match(/(?:[^,"']+|"[^"]*")+/g);
                         if (cells && cells.length === 6) {
                             const processedCells = cells.map(cell => cell.trim().replace(/^"|"$/g, ''));
-                            const rowKey = processedCells.join('|'); // Create a unique key for the row
-                            if (!uniqueRows.has(rowKey)) {
-                                uniqueRows.add(rowKey);
-                                parsedData.push(processedCells);
+                            const answer = processedCells[5];
+                            let isValidRow = true;
+
+                            // Check if any clue contains the answer
+                            for (let i = 0; i < 5; i++) {
+                                // Normalize both clue and answer for the check
+                                if (normalizeString(processedCells[i]).includes(normalizeString(answer)) && normalizeString(answer).length > 2) {
+                                    console.warn(`Discarding row (clue contains answer): ${row}`);
+                                    isValidRow = false;
+                                    break;
+                                }
                             }
+
+                            if (isValidRow) {
+                                const rowKey = processedCells.join('|'); // Create a unique key for the row
+                                if (!uniqueRows.has(rowKey)) {
+                                    uniqueRows.add(rowKey);
+                                    parsedData.push(processedCells);
+                                } else {
+                                    console.warn(`Discarding duplicate row: ${row}`);
+                                }
+                            }
+                        } else {
+                             console.warn(`Discarding malformed row: ${row}`);
                         }
                     });
                     gameData = parsedData;
@@ -700,6 +676,7 @@
                     row.classList.add('hidden');
                     row.classList.remove('shake');
                     row.classList.remove('correct-clue-revealed');
+                    row.classList.remove('lost-game'); // Ensure lost-game class is removed
                 });
 
                 const randomIndex = Math.floor(Math.random() * gameData.length);
@@ -774,6 +751,7 @@
                             startSadEmojis();
                             body.classList.remove('correct-bg');
                             body.classList.add('incorrect-bg');
+                            document.getElementById('answer-row').classList.add('lost-game'); // Apply lost-game class here
                         }
                     }, 600);
                 }
