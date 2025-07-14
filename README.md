@@ -1,4 +1,4 @@
-<table style="background-image: url('GTC-12345QuestionMark.jpg'); background-size: cover; background-repeat: no-repeat; background-position: center; color: black; padding: 20px;">
+<table style="background-image: url('https://neilschreiner.github.io/GuessTheCategory/GTC-12345QuestionMark.jpg'); background-size: cover; background-repeat: no-repeat; background-position: center; color: black; padding: 20px;">
   <tr>
     <td>
       <p>This is a <b>Category Guess Game</b>, a web-based interactive experience where players challenge themselves to identify a hidden category or phrase.</p>
