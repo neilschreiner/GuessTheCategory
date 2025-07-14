@@ -360,7 +360,7 @@
     </div>
 
     <div id="version-container">
-        <p id="versionTag" class="version-tag">ver: 1759-13JUL2025 - <a href="https://neilschreiner.github.io/">&copy; neil</a></p> <!-- Hardcoded version tag -->
+        <p id="versionTag" class="version-tag">Last updated: <span id="last-updated"></span> - <a href="https://neilschreiner.github.io/">&copy; neil</a></p> <!-- Hardcoded version tag -->
     </div>
 
     <div id="confetti-container"></div> <!-- Confetti container -->
@@ -1020,6 +1020,16 @@
             } else {
                 selectDifficulty('easy'); // Default if no difficulty is stored
             }
+
+            // retrieve the last time the repo was updated
+            fetch('https://api.github.com/repos/neilschreiner/GuessTheCategory')
+              .then(response => response.json())
+              .then(data => {
+                const lastUpdated = new Date(data.pushed_at);
+                const formattedDate = lastUpdated.toLocaleDateString() + ' ' + lastUpdated.toLocaleTimeString();
+                document.getElementById('last-updated').textContent = formattedDate;
+              })
+              .catch(error => console.error('Error fetching data:', error));
         });
     </script>
 </body>
