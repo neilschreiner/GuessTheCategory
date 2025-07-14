@@ -2,4 +2,4 @@ This is a **Category Guess Game**, a web-based interactive experience where play
 
 The game presents you with five clues, revealed one at a time. After each clue, you enter your guess into a text box. If your guess is correct (even if it's a similar answer!), the game celebrates with a burst of confetti, happy emojis, and a light blue background, revealing all clues and the answer. If your guess is incorrect, the input box shakes, your wrong attempt is crossed out, and the next clue appears. The game concludes, displaying sad/crying/thumbs-down emojis and a light red background, only after you submit an incorrect guess to the fifth and final clue. You can choose from Easy, Medium, or Hard difficulty levels, each with unique clue sets, and easily restart a new game (with different clues for the selected difficulty) using the "Play Again?" button.
 
-<img src="GTC-12345QuestionMark.jpg" alt="Question Mark Image" class="width: 100px;height: auto;">
+<img src="GTC-12345QuestionMark.jpg" alt="Category Game Logo" style="width: 100px; height: auto;">
