@@ -360,7 +360,7 @@
     </div>
 
     <div id="version-container">
-        <p id="versionTag" class="version-tag">ver: 1952-13JUL2025 - <a href="https://neilschreiner.github.io/">&copy; neil</a></p> <!-- Hardcoded version tag -->
+        <p id="versionTag" class="version-tag">ver: 1759-13JUL2025 - <a href="https://neilschreiner.github.io/">&copy; neil</a></p> <!-- Hardcoded version tag -->
     </div>
 
     <div id="confetti-container"></div> <!-- Confetti container -->
@@ -390,8 +390,7 @@
             let confettiInterval;
             let sadEmojiInterval;
             let happyEmojiInterval;
-
-            // Removed setVersionTag() function as it's now hardcoded
+            let lastUsedGameIndex = -1; // New variable to store the index of the last used game row
 
             // Helper function to normalize strings for comparison
             function normalizeString(str) {
@@ -729,8 +728,16 @@
                     row.classList.remove('lost-game'); // Ensure lost-game class is removed
                 });
 
-                const randomIndex = Math.floor(Math.random() * gameData.length);
-                currentRow = gameData[randomIndex];
+                let newRandomIndex;
+                if (gameData.length > 1) {
+                    do {
+                        newRandomIndex = Math.floor(Math.random() * gameData.length);
+                    } while (newRandomIndex === lastUsedGameIndex);
+                } else {
+                    newRandomIndex = 0; // If only one item, just pick it
+                }
+                lastUsedGameIndex = newRandomIndex; // Update the last used index
+                currentRow = gameData[newRandomIndex];
 
                 for (let i = 1; i <= maxClues; i++) {
                     document.getElementById(`clue${i}`).textContent = currentRow[i - 1];
