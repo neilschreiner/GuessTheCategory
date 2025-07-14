@@ -1,4 +1,4 @@
-<table style="background-image: url('https://neilschreiner.github.io/GuessTheCategory/GTC-12345QuestionMark.jpg'); background-size: contain; background-repeat: no-repeat; background-position: center; background-attachment: fixed; width: 100%; height: auto; border-collapse: collapse;">
+<table style="background-image: url('https://neilschreiner.github.io/GuessTheCategory/GTC-12345QuestionMark.jpg'); background-size: contain; background-repeat: no-repeat; background-position: center; background-attachment: fixed; width: auto; height: auto; border-collapse: collapse;">
   <tr>
     <td style="padding: 20px;">
       <div style="background-color: rgba(255, 255, 255, 0.8); padding: 15px; border-radius: 8px;">
