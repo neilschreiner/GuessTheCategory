@@ -1337,7 +1337,6 @@
             const storedDifficulty = localStorage.getItem('gameDifficulty');
             if (storedDifficulty) {
                 selectDifficulty(storedDifficulty);
-                location.reload();
             } else {
                 selectDifficulty('easy'); // Default if no difficulty is stored
             }
