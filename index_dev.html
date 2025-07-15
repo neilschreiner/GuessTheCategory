@@ -132,7 +132,7 @@
 
         @keyframes pulse-fire {
             0% { box-shadow: 0 0 15px #DC143C, 0 0 30px #DC143C, 0 0 45px #DC143C; }
-            100% { box-shadow: 0 0 25px #DC143C, 0 0 50px #DC143C, 0 0 75px #DC143C; }
+            100% { box-shadow: 0 0 35px #DC143C, 0 0 70px #DC143C, 0 0 100px #DC143C; }
         }
 
 
@@ -377,14 +377,17 @@
             gap: 10px; /* Space between "Seconds left:" and number */
             color: gray; /* Default color for the whole timer display */
         }
-        #timerDisplay #timeRemaining { /* Style for the numerical part of the timer */
+        #timerDisplay #timeRemainingText { /* Style for "Seconds left:" text */
+            color: inherit; /* Inherit color from parent (#timerDisplay) */
+        }
+        #timerDisplay #timeRemainingValue { /* Style for the numerical part of the timer */
              transition: color 1s linear; /* Keep transition for the number itself */
              color: inherit; /* Inherit color from parent, which will be set by JS */
         }
-        #timerDisplay.blue-text #timeRemaining {
+        #timerDisplay.blue-text #timeRemainingValue {
             color: blue !important; /* Force blue on win */
         }
-        #timerDisplay.red-text #timeRemaining {
+        #timerDisplay.red-text #timeRemainingValue {
             color: red !important; /* Force red on run out or win with time left */
         }
     </style>
@@ -401,7 +404,7 @@
         <h1>Guess the Category!</h1>
         <p class="subtitle">Guess a hidden category or phrase by receiving five clues, one at a time.</p>
 
-        <div id="timerDisplay"><span id="timeRemaining"></span></div>
+        <div id="timerDisplay"><span id="timeRemainingText">Seconds left: </span><span id="timeRemainingValue"></span></div>
         <table id="clueTable">
             <thead>
                 <tr>
@@ -442,6 +445,11 @@
 
     <script>
         // script.js content
+        // Declare timerDisplay and timeRemainingValue globally
+        let timerDisplay;
+        let timeRemainingValue;
+        let timerInterval; // Also declare timerInterval globally
+
         document.addEventListener('DOMContentLoaded', () => {
             const body = document.body;
             const easyButton = document.getElementById('easyButton');
@@ -457,8 +465,11 @@
             const confettiContainer = document.getElementById('confetti-container');
             const emojiContainer = document.getElementById('emoji-container');
             const balloonContainer = document.getElementById('balloon-container');
-            const timerDisplay = document.getElementById('timerDisplay');
-            const timeRemainingSpan = document.getElementById('timeRemaining');
+            
+            // Initialize global timer elements inside DOMContentLoaded
+            timerDisplay = document.getElementById('timerDisplay');
+            // timeRemainingText is a static part of the HTML now, no need to getElementById for it
+            timeRemainingValue = document.getElementById('timeRemainingValue');
 
             let gameData = [];
             let currentRow = [];
@@ -471,7 +482,6 @@
             let lastUsedGameIndex = -1;
 
             let currentDifficulty = 'easy';
-            let timerInterval;
             let timeLeft = 0;
             
             // Define time limits for each difficulty
@@ -528,7 +538,7 @@
 "A sweet treat", "Made from cocoa beans", "Comes in bars or pieces", "Can be dark, milk, or white", "Often given as a gift", "Chocolate"
 "A frozen dessert", "Made from milk and sugar", "Comes in many flavors", "Often served in a cone or bowl", "Melts quickly in the sun", "Ice Cream"
 "A popular sport", "Played with a ball and a net", "Two teams compete", "Can be played indoors or outdoors", "Requires running and jumping", "Basketball"
-"A type of transportation", "Has two wheels", "You pedal to move it", "Good for exercise", "Can be electric or manual", "Bicycle"
+"A type of transportation", "Has two wheels", "You pedal to move it", "Good for exercise", "Can be ridden on roads or trails", "Has handlebars and a seat", "Bicycle"
 "A place to buy food", "Has many aisles", "Sells fresh produce and packaged goods", "You use a cart to shop", "Often has a bakery and deli", "Grocery Store"
 "A small, winged insect", "Known for making honey", "Lives in a hive", "Pollinates flowers", "Can sting", "Bee"
 "A large, green vegetable", "Has many layers", "Can be eaten raw or cooked", "Often used in salads or soups", "Has a strong smell when cut", "Onion"
@@ -563,14 +573,14 @@
 "A sweet frozen treat", "Made from milk and sugar", "Comes in many flavors", "Served in cones or bowls", "Melts on a hot day", "Ice Cream"
 "A sport with a ball and hoop", "Players dribble and shoot", "Two teams compete", "Played on a court", "Michael Jordan was famous for it", "Basketball"
 "A two-wheeled vehicle", "Powered by pedaling", "Good for exercise", "Can be ridden on roads or trails", "Has handlebars and a seat", "Bicycle"
-"A place to buy groceries", "Has aisles of food", "You use a shopping cart", "Sells fruits, vegetables, vegetables, meat", "Has a checkout counter", "Grocery Store"
+"A place to buy food", "Has many aisles", "Sells fresh produce and packaged goods", "You use a cart to shop", "Often has a bakery and deli", "Grocery Store"
 "A small flying insect", "Makes honey", "Lives in a hive", "Pollinates flowers", "Can sting", "Bee"
 "A green vegetable", "Has many layers", "Can make you cry when cut", "Used in salads and cooking", "Has a strong smell", "Onion"
 "A small rodent", "Known for bushy tail", "Climbs trees", "Eats nuts and seeds", "Often seen in parks", "Squirrel"
 "A genre of music", "Often loud and energetic", "Uses guitars, drums, bass", "Popular with young people", "Artists like Queen and Led Zeppelin", "Rock"
 "A warm drink", "Made from leaves steeped in hot water", "Can be black, green, or herbal", "Often served with milk or lemon", "Popular in the morning or afternoon", "Tea"
 "A large flightless bird", "Native to Africa", "Known for its speed", "Lays the largest eggs", "Can be ridden in some places", "Ostrich"
-"A building for books", "People go there to read or study", "You can borrow books for free", "Has quiet reading areas", "Often has computers and Wi-Fi", "Library"
+"A place for books", "You can borrow stories", "Has quiet reading areas", "Often has computers and Wi-Fi", "A public resource for knowledge", "Library"
 "A round, citrus fruit", "Orange in color", "Can be peeled and eaten", "Used for juice", "Rich in Vitamin C", "Associated with sunshine", "Orange"
 "A place to watch movies", "Has a big screen", "Sells popcorn and candy", "You buy tickets to enter", "Dark inside during the show", "Movie Theater"
 "A small green vegetable", "Grows in pods", "Often found in frozen bags", "Sweet when cooked", "A good source of fiber", "Pea"
@@ -582,7 +592,7 @@
 "A large, aquatic mammal", "Lives in the ocean", "Known for its blowhole", "Can be very large", "Sings complex songs underwater", "Whale"
 "A small, flying insect", "Known for biting", "Can spread diseases", "Active in warm weather", "Makes a buzzing sound", "Mosquito"
 "A type of footwear", "Worn on the foot and ankle", "Can be for sports or fashion", "Often made of canvas or leather", "Has laces", "Sneaker"
-"A green vegetable", "Has a tree-like appearance", "Often steamed or roasted", "Good source of vitamins", "Part of the cabbage family", "Broccoli"
+"A green vegetable", "Looks like a small tree", "Often steamed or roasted", "Good for your health", "Part of the cruciferous family", "Broccoli"
 `;
 
             // Medium CSV data (previously Hard + 200 new entries) embedded directly in the JavaScript
@@ -906,10 +916,9 @@
 
                 revealNextClue();
 
-                // Start timer if Ultra difficulty is selected
-                if (currentDifficulty === 'ultra') {
-                    startTimer();
-                }
+                // Start timer for all difficulties now
+                timerDisplay.classList.remove('hidden'); // Make timer visible for all difficulties
+                startTimer();
             }
 
             // Function to reveal the next clue
@@ -948,11 +957,8 @@
                     submitGuessButton.classList.add('hidden');
 
                     clearInterval(timerInterval); // Stop timer on correct guess
-                    if (currentDifficulty === 'ultra') {
-                        timerDisplay.classList.remove('red-text');
-                        timerDisplay.classList.add('blue-text'); // Timer turns blue on win
-                        startBalloons(); // Start balloons for Ultra win
-                    }
+                    timerDisplay.classList.remove('red-text'); // Ensure red is removed
+                    timerDisplay.classList.add('blue-text'); // Timer turns blue on win
 
                     for (let i = 1; i <= currentClueIndex; i++) {
                         document.getElementById(`clue${i}-row`).classList.add('correct-clue-revealed');
@@ -962,6 +968,10 @@
                     playAgainButton.classList.remove('hidden');
                     startConfetti();
                     startHappyEmojis();
+                    // Start balloons only if on Ultra difficulty
+                    if (currentDifficulty === 'ultra') {
+                        startBalloons();
+                    }
                     body.classList.remove('incorrect-bg');
                     body.classList.add('correct-bg');
                 } else {
@@ -1215,27 +1225,27 @@
             // Timer functions
             function startTimer() {
                 timeLeft = DIFFICULTY_TIME_LIMITS[currentDifficulty]; // Use difficulty-specific time limit
-                timeRemainingSpan.textContent = `Seconds left: ${timeLeft}`; // Update the span with text and number
+                timeRemainingValue.textContent = timeLeft; // Only update the value part
                 timerDisplay.classList.remove('hidden'); // Show timer
                 timerDisplay.classList.remove('blue-text', 'red-text'); // Remove old color classes
-                timeRemainingSpan.style.color = 'gray'; // Start numerical part as gray
+                timeRemainingValue.style.color = 'gray'; // Start numerical part as gray
 
                 timerInterval = setInterval(() => {
                     timeLeft--;
-                    timeRemainingSpan.textContent = `Seconds left: ${timeLeft}`; // Update the span with text and number
+                    timeRemainingValue.textContent = timeLeft; // Only update the value part
 
                     // Color transition from gray (rgb(128,128,128)) to red (rgb(255,0,0))
                     // Calculate based on the specific difficulty's total time
                     const totalTime = DIFFICULTY_TIME_LIMITS[currentDifficulty];
                     const redComponent = Math.min(255, 128 + Math.floor((totalTime - timeLeft) / totalTime * 127)); // 128 to 255
                     const greenBlueComponent = Math.max(0, 128 - Math.floor((totalTime - timeLeft) / totalTime * 128)); // 128 to 0
-                    timeRemainingSpan.style.color = `rgb(${redComponent}, ${greenBlueComponent}, ${greenBlueComponent})`;
+                    timeRemainingValue.style.color = `rgb(${redComponent}, ${greenBlueComponent}, ${greenBlueComponent})`;
 
 
                     if (timeLeft <= 0) {
                         clearInterval(timerInterval);
-                        timeRemainingSpan.textContent = "Seconds left: 0"; // Final text for 0 seconds
-                        timeRemainingSpan.style.color = 'red';
+                        timeRemainingValue.textContent = "0"; // Final value for 0 seconds
+                        timeRemainingValue.style.color = 'red';
                         onTimerEnd();
                     }
                 }, 1000); // Update every second
@@ -1262,17 +1272,12 @@
                 easyButton.classList.remove('selected');
                 mediumButton.classList.remove('selected');
                 hardButton.classList.remove('selected');
-                ultraButton.classList.remove('selected'); // Remove selected from Ultra
+                ultraButton.classList.remove('selected');
 
-                // Stop any existing timer or animations when changing difficulty
-                clearInterval(timerInterval);
-                timerDisplay.classList.add('hidden'); // Always hide timer when changing difficulty
-                stopConfetti();
-                stopHappyEmojis();
-                stopSadEmojis();
-                stopBalloons();
+                clearInterval(timerInterval); // Stop any existing timer
+                timerDisplay.classList.add('hidden'); // Hide timer by default
 
-                currentDifficulty = difficulty; // Update current difficulty tracker
+                currentDifficulty = difficulty;
 
                 if (difficulty === 'easy') {
                     easyButton.classList.add('selected');
@@ -1286,13 +1291,14 @@
                     hardButton.classList.add('selected');
                     loadCSVData(hardCsvData);
                     localStorage.setItem('gameDifficulty', 'hard');
-                } else if (difficulty === 'ultra') { // Handle Ultra difficulty
+                } else if (difficulty === 'ultra') {
                     ultraButton.classList.add('selected');
-                    loadCSVData(ultraCsvData); // Load Ultra data
+                    loadCSVData(ultraCsvData);
                     localStorage.setItem('gameDifficulty', 'ultra');
                 }
-
-                // Start timer for all difficulties now
+                
+                // Show timer and start it for ALL difficulties
+                timerDisplay.classList.remove('hidden');
                 startTimer();
             }
 
@@ -1304,21 +1310,20 @@
                 }
             });
             playAgainButton.addEventListener('click', () => {
-                // Reload the page, the DOMContentLoaded listener will pick up the stored difficulty
                 location.reload();
             });
 
             easyButton.addEventListener('click', () => selectDifficulty('easy'));
             mediumButton.addEventListener('click', () => selectDifficulty('medium'));
             hardButton.addEventListener('click', () => selectDifficulty('hard'));
-            ultraButton.addEventListener('click', () => selectDifficulty('ultra')); // Event listener for Ultra button
+            ultraButton.addEventListener('click', () => selectDifficulty('ultra'));
 
-            // Initial load: default to Easy or load from localStorage
+            // Initial load
             const storedDifficulty = localStorage.getItem('gameDifficulty');
             if (storedDifficulty) {
                 selectDifficulty(storedDifficulty);
             } else {
-                selectDifficulty('easy'); // Default if no difficulty is stored
+                selectDifficulty('easy');
             }
 
             // retrieve the last time the repo was updated
