@@ -368,7 +368,7 @@
 
         /* Timer styles */
         #timerDisplay {
-            font-size: 2.0em; /* Slightly smaller font size */
+            font-size: 1.5em; /* Adjusted font size to be slightly smaller */
             font-weight: bold;
             margin-bottom: 10px;
             display: flex; /* Use flexbox to align text and number */
@@ -401,7 +401,7 @@
             <button id="hardButton">Hard</button>
             <button id="ultraButton">Ultra</button>
         </div>
-        <h1>Guess the Category!</h1>
+        <h1>CATEGORY!</h1>
         <p class="subtitle">Guess a hidden category or phrase by receiving five clues, one at a time.</p>
 
         <div id="timerDisplay"><span id="timeRemainingText">Seconds left: </span><span id="timeRemainingValue"></span></div>
@@ -445,10 +445,11 @@
 
     <script>
         // script.js content
-        // Declare timerDisplay and timeRemainingValue globally
+        // Declare global variables for timer elements and intervals
         let timerDisplay;
         let timeRemainingValue;
-        let timerInterval; // Also declare timerInterval globally
+        let timerInterval;
+        let startTime; // To store the precise start time of the timer
 
         document.addEventListener('DOMContentLoaded', () => {
             const body = document.body;
@@ -468,7 +469,6 @@
             
             // Initialize global timer elements inside DOMContentLoaded
             timerDisplay = document.getElementById('timerDisplay');
-            // timeRemainingText is a static part of the HTML now, no need to getElementById for it
             timeRemainingValue = document.getElementById('timeRemainingValue');
 
             let gameData = [];
@@ -537,14 +537,14 @@
 "A large bird", "Cannot fly", "Native to Australia", "Known for its long neck and legs", "Fast runner", "Emu"
 "A sweet treat", "Made from cocoa beans", "Comes in bars or pieces", "Can be dark, milk, or white", "Often given as a gift", "Chocolate"
 "A frozen dessert", "Made from milk and sugar", "Comes in many flavors", "Often served in a cone or bowl", "Melts quickly in the sun", "Ice Cream"
-"A popular sport", "Played with a ball and a net", "Two teams compete", "Can be played indoors or outdoors", "Requires running and jumping", "Basketball"
+"A popular sport", "Played with a ball and a net", "Two teams compete", "Played on a court", "Michael Jordan was famous for it", "Basketball"
 "A type of transportation", "Has two wheels", "You pedal to move it", "Good for exercise", "Can be ridden on roads or trails", "Has handlebars and a seat", "Bicycle"
 "A place to buy food", "Has many aisles", "Sells fresh produce and packaged goods", "You use a cart to shop", "Often has a bakery and deli", "Grocery Store"
 "A small, winged insect", "Known for making honey", "Lives in a hive", "Pollinates flowers", "Can sting", "Bee"
 "A large, green vegetable", "Has many layers", "Can be eaten raw or cooked", "Often used in salads or soups", "Has a strong smell when cut", "Onion"
 "A small, furry rodent", "Known for storing nuts", "Has a bushy tail", "Lives in trees", "Active in the daytime", "Squirrel"
-"A type of music", "Often played with guitars and drums", "Has a strong beat", "Popular with young people", "Can be loud and energetic", "Rock"
-"A hot drink", "Made from dried leaves", "Often served with milk and sugar", "Comes in many varieties", "Popular in the UK", "Tea"
+"A type of music", "Often played with guitars and drums", "Has a strong beat", "Popular with young people", "Artists like Queen and Led Zeppelin", "Rock"
+"A hot drink", "Made from leaves steeped in hot water", "Can be black, green, or herbal", "Often served with milk or lemon", "Popular in the morning or afternoon", "Tea"
 "A large, flightless bird", "Native to Africa", "Known for its speed", "Lays the largest eggs", "Can be ridden in some places", "Ostrich"
 "A building for books", "People go there to read or study", "You can borrow books for free", "Has quiet reading areas", "Often has computers and Wi-Fi", "Library"
 "A round, orange fruit", "Has a thick peel", "Can be peeled and eaten", "Used for juice", "Rich in Vitamin C", "Associated with sunshine", "Orange"
@@ -580,7 +580,7 @@
 "A genre of music", "Often loud and energetic", "Uses guitars, drums, bass", "Popular with young people", "Artists like Queen and Led Zeppelin", "Rock"
 "A warm drink", "Made from leaves steeped in hot water", "Can be black, green, or herbal", "Often served with milk or lemon", "Popular in the morning or afternoon", "Tea"
 "A large flightless bird", "Native to Africa", "Known for its speed", "Lays the largest eggs", "Can be ridden in some places", "Ostrich"
-"A place for books", "You can borrow stories", "Has quiet reading areas", "Often has computers and Wi-Fi", "A public resource for knowledge", "Library"
+"A building for books", "People go there to read or study", "You can borrow books for free", "Has quiet reading areas", "Often has computers and Wi-Fi", "Library"
 "A round, citrus fruit", "Orange in color", "Can be peeled and eaten", "Used for juice", "Rich in Vitamin C", "Associated with sunshine", "Orange"
 "A place to watch movies", "Has a big screen", "Sells popcorn and candy", "You buy tickets to enter", "Dark inside during the show", "Movie Theater"
 "A small green vegetable", "Grows in pods", "Often found in frozen bags", "Sweet when cooked", "A good source of fiber", "Pea"
@@ -592,7 +592,7 @@
 "A large, aquatic mammal", "Lives in the ocean", "Known for its blowhole", "Can be very large", "Sings complex songs underwater", "Whale"
 "A small, flying insect", "Known for biting", "Can spread diseases", "Active in warm weather", "Makes a buzzing sound", "Mosquito"
 "A type of footwear", "Worn on the foot and ankle", "Can be for sports or fashion", "Often made of canvas or leather", "Has laces", "Sneaker"
-"A green vegetable", "Looks like a small tree", "Often steamed or roasted", "Good for your health", "Part of the cruciferous family", "Broccoli"
+"A green vegetable", "Has a tree-like appearance", "Often steamed or roasted", "Good source of vitamins", "Part of the cabbage family", "Broccoli"
 `;
 
             // Medium CSV data (previously Hard + 200 new entries) embedded directly in the JavaScript
@@ -878,7 +878,7 @@
 
                 // Stop any running timer
                 clearInterval(timerInterval);
-                timerDisplay.classList.add('hidden'); // Hide timer by default
+                // timerDisplay.classList.add('hidden'); // This line was causing the timer to be hidden always
 
                 body.classList.remove('correct-bg', 'incorrect-bg');
 
@@ -1224,31 +1224,32 @@
 
             // Timer functions
             function startTimer() {
-                timeLeft = DIFFICULTY_TIME_LIMITS[currentDifficulty]; // Use difficulty-specific time limit
-                timeRemainingValue.textContent = timeLeft; // Only update the value part
-                timerDisplay.classList.remove('hidden'); // Show timer
-                timerDisplay.classList.remove('blue-text', 'red-text'); // Remove old color classes
-                timeRemainingValue.style.color = 'gray'; // Start numerical part as gray
+                const totalAllowedTime = DIFFICULTY_TIME_LIMITS[currentDifficulty];
+                startTime = Date.now(); // Record the exact start time
 
-                timerInterval = setInterval(() => {
-                    timeLeft--;
-                    timeRemainingValue.textContent = timeLeft; // Only update the value part
+                function updateTimer() {
+                    const elapsedTime = Date.now() - startTime; // Calculate elapsed real time
+                    timeLeft = Math.max(0, totalAllowedTime - Math.floor(elapsedTime / 1000)); // Calculate remaining time
+
+                    timeRemainingValue.textContent = timeLeft; // Update the value part
 
                     // Color transition from gray (rgb(128,128,128)) to red (rgb(255,0,0))
-                    // Calculate based on the specific difficulty's total time
-                    const totalTime = DIFFICULTY_TIME_LIMITS[currentDifficulty];
-                    const redComponent = Math.min(255, 128 + Math.floor((totalTime - timeLeft) / totalTime * 127)); // 128 to 255
-                    const greenBlueComponent = Math.max(0, 128 - Math.floor((totalTime - timeLeft) / totalTime * 128)); // 128 to 0
+                    const redComponent = Math.min(255, 128 + Math.floor((totalAllowedTime - timeLeft) / totalAllowedTime * 127));
+                    const greenBlueComponent = Math.max(0, 128 - Math.floor((totalAllowedTime - timeLeft) / totalAllowedTime * 128));
                     timeRemainingValue.style.color = `rgb(${redComponent}, ${greenBlueComponent}, ${greenBlueComponent})`;
 
 
                     if (timeLeft <= 0) {
                         clearInterval(timerInterval);
-                        timeRemainingValue.textContent = "0"; // Final value for 0 seconds
+                        timeRemainingValue.textContent = "0";
                         timeRemainingValue.style.color = 'red';
                         onTimerEnd();
                     }
-                }, 1000); // Update every second
+                }
+
+                clearInterval(timerInterval); // Clear any existing interval before starting a new one
+                timerInterval = setInterval(updateTimer, 1000); // Update every second
+                updateTimer(); // Call immediately to show initial time
             }
 
             function onTimerEnd() {
@@ -1274,8 +1275,12 @@
                 hardButton.classList.remove('selected');
                 ultraButton.classList.remove('selected');
 
-                clearInterval(timerInterval); // Stop any existing timer
-                timerDisplay.classList.add('hidden'); // Hide timer by default
+                // Stop any existing timer or animations when changing difficulty
+                clearInterval(timerInterval);
+                stopConfetti();
+                stopHappyEmojis();
+                stopSadEmojis();
+                stopBalloons();
 
                 currentDifficulty = difficulty;
 
@@ -1298,7 +1303,7 @@
                 }
                 
                 // Show timer and start it for ALL difficulties
-                timerDisplay.classList.remove('hidden');
+                timerDisplay.classList.remove('hidden'); // Make timer visible for all difficulties
                 startTimer();
             }
 
