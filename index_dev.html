@@ -377,14 +377,14 @@
             gap: 10px; /* Space between "Seconds left:" and number */
             color: gray; /* Default color for the whole timer display */
         }
-        #timerDisplay span { /* Style for the numerical part of the timer */
+        #timerDisplay #timeRemaining { /* Style for the numerical part of the timer */
              transition: color 1s linear; /* Keep transition for the number itself */
              color: inherit; /* Inherit color from parent, which will be set by JS */
         }
-        #timerDisplay.blue-text span {
+        #timerDisplay.blue-text #timeRemaining {
             color: blue !important; /* Force blue on win */
         }
-        #timerDisplay.red-text span {
+        #timerDisplay.red-text #timeRemaining {
             color: red !important; /* Force red on run out or win with time left */
         }
     </style>
@@ -401,7 +401,7 @@
         <h1>Guess the Category!</h1>
         <p class="subtitle">Guess a hidden category or phrase by receiving five clues, one at a time.</p>
 
-        <div id="timerDisplay" class="hidden"><span id="timeRemaining">Seconds left: </span></div>
+        <div id="timerDisplay"><span id="timeRemaining"></span></div>
         <table id="clueTable">
             <thead>
                 <tr>
@@ -570,7 +570,7 @@
 "A genre of music", "Often loud and energetic", "Uses guitars, drums, bass", "Popular with young people", "Artists like Queen and Led Zeppelin", "Rock"
 "A warm drink", "Made from leaves steeped in hot water", "Can be black, green, or herbal", "Often served with milk or lemon", "Popular in the morning or afternoon", "Tea"
 "A large flightless bird", "Native to Africa", "Known for its speed", "Lays the largest eggs", "Can be ridden in some places", "Ostrich"
-"A place for books", "You can borrow stories", "Has quiet reading areas", "Often has computers and Wi-Fi", "A public resource for knowledge", "Library"
+"A building for books", "People go there to read or study", "You can borrow books for free", "Has quiet reading areas", "Often has computers and Wi-Fi", "Library"
 "A round, citrus fruit", "Orange in color", "Can be peeled and eaten", "Used for juice", "Rich in Vitamin C", "Associated with sunshine", "Orange"
 "A place to watch movies", "Has a big screen", "Sells popcorn and candy", "You buy tickets to enter", "Dark inside during the show", "Movie Theater"
 "A small green vegetable", "Grows in pods", "Often found in frozen bags", "Sweet when cooked", "A good source of fiber", "Pea"
@@ -1212,7 +1212,7 @@
                 }
             }
 
-            // Timer functions for Ultra difficulty
+            // Timer functions
             function startTimer() {
                 timeLeft = DIFFICULTY_TIME_LIMITS[currentDifficulty]; // Use difficulty-specific time limit
                 timeRemainingSpan.textContent = `Seconds left: ${timeLeft}`; // Update the span with text and number
@@ -1290,8 +1290,10 @@
                     ultraButton.classList.add('selected');
                     loadCSVData(ultraCsvData); // Load Ultra data
                     localStorage.setItem('gameDifficulty', 'ultra');
-                    timerDisplay.classList.remove('hidden'); // Show timer only for Ultra
                 }
+
+                // Start timer for all difficulties now
+                startTimer();
             }
 
             // Event Listeners
