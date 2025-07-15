@@ -122,7 +122,7 @@
             background-color: #6abff5; /* Lighter Blue */
         }
         #hardButton.selected {
-            background-color: #F06F6F; /* Light Red */
+            background-color: #ed4c4c; /* Light Red */
         }
         #ultraButton.selected {
             background-color: #DC143C; /* Cherry Red */
@@ -368,7 +368,7 @@
 
         /* Timer styles */
         #timerDisplay {
-            font-size: 2.5em;
+            font-size: 2.0em; /* Slightly smaller font size */
             font-weight: bold;
             margin-bottom: 10px;
             display: flex; /* Use flexbox to align text and number */
@@ -377,14 +377,14 @@
             gap: 10px; /* Space between "Seconds left:" and number */
             color: gray; /* Default color for the whole timer display */
         }
-        #timerDisplay span { /* Style for the numerical part of the timer */
+        #timerDisplay #timeRemaining { /* Style for the numerical part of the timer */
              transition: color 1s linear; /* Keep transition for the number itself */
              color: inherit; /* Inherit color from parent, which will be set by JS */
         }
-        #timerDisplay.blue-text span {
+        #timerDisplay.blue-text #timeRemaining {
             color: blue !important; /* Force blue on win */
         }
-        #timerDisplay.red-text span {
+        #timerDisplay.red-text #timeRemaining {
             color: red !important; /* Force red on run out or win with time left */
         }
     </style>
@@ -401,7 +401,7 @@
         <h1>Guess the Category!</h1>
         <p class="subtitle">Guess a hidden category or phrase by receiving five clues, one at a time.</p>
 
-        <div id="timerDisplay" class="hidden"><span id="timeRemaining"></span></div>
+        <div id="timerDisplay"><span id="timeRemaining"></span></div>
         <table id="clueTable">
             <thead>
                 <tr>
@@ -473,7 +473,14 @@
             let currentDifficulty = 'easy';
             let timerInterval;
             let timeLeft = 0;
-            const ULTRA_TIME_LIMIT = 30;
+            
+            // Define time limits for each difficulty
+            const DIFFICULTY_TIME_LIMITS = {
+                'easy': 270,
+                'medium': 230,
+                'hard': 160,
+                'ultra': 45
+            };
 
             // Helper function to normalize strings for comparison
             function normalizeString(str) {
@@ -521,7 +528,7 @@
 "A sweet treat", "Made from cocoa beans", "Comes in bars or pieces", "Can be dark, milk, or white", "Often given as a gift", "Chocolate"
 "A frozen dessert", "Made from milk and sugar", "Comes in many flavors", "Often served in a cone or bowl", "Melts quickly in the sun", "Ice Cream"
 "A popular sport", "Played with a ball and a net", "Two teams compete", "Can be played indoors or outdoors", "Requires running and jumping", "Basketball"
-"A type of transportation", "Has two wheels", "You pedal to move it", "Good for exercise", "Can be ridden on roads or trails", "Has handlebars and a seat", "Bicycle"
+"A type of transportation", "Has two wheels", "You pedal to move it", "Good for exercise", "Can be electric or manual", "Bicycle"
 "A place to buy food", "Has many aisles", "Sells fresh produce and packaged goods", "You use a cart to shop", "Often has a bakery and deli", "Grocery Store"
 "A small, winged insect", "Known for making honey", "Lives in a hive", "Pollinates flowers", "Can sting", "Bee"
 "A large, green vegetable", "Has many layers", "Can be eaten raw or cooked", "Often used in salads or soups", "Has a strong smell when cut", "Onion"
@@ -563,7 +570,7 @@
 "A genre of music", "Often loud and energetic", "Uses guitars, drums, bass", "Popular with young people", "Artists like Queen and Led Zeppelin", "Rock"
 "A warm drink", "Made from leaves steeped in hot water", "Can be black, green, or herbal", "Often served with milk or lemon", "Popular in the morning or afternoon", "Tea"
 "A large flightless bird", "Native to Africa", "Known for its speed", "Lays the largest eggs", "Can be ridden in some places", "Ostrich"
-"A place for books", "You can borrow stories", "Has quiet reading areas", "Often has computers and Wi-Fi", "A public resource for knowledge", "Library"
+"A building for books", "People go there to read or study", "You can borrow books for free", "Has quiet reading areas", "Often has computers and Wi-Fi", "Library"
 "A round, citrus fruit", "Orange in color", "Can be peeled and eaten", "Used for juice", "Rich in Vitamin C", "Associated with sunshine", "Orange"
 "A place to watch movies", "Has a big screen", "Sells popcorn and candy", "You buy tickets to enter", "Dark inside during the show", "Movie Theater"
 "A small green vegetable", "Grows in pods", "Often found in frozen bags", "Sweet when cooked", "A good source of fiber", "Pea"
@@ -634,32 +641,6 @@
 "A field of study", "Examines the human mind and behavior", "Includes cognitive, developmental, social branches", "Uses observation and experimentation", "Aims to understand mental processes", "Psychology"
 "A type of weapon", "Used for long-range combat", "Fires projectiles with gunpowder", "Can be a rifle, pistol, or shotgun", "Requires training to use safely", "Firearm"
 "A type of musical instrument", "Produces sound from vibrating strings", "Played with a bow or plucked", "Violin, cello, bass are examples", "Part of an orchestra", "String Instrument"
-"A form of government", "Power is held by a small group of elites", "Rule by a few", "Can be based on wealth, military power, or family", "Ancient Sparta was an example", "Oligarchy"
-"A natural phenomenon", "A large mass of ice moving slowly", "Forms over land from compacted snow", "Can carve out valleys", "Found in polar regions and high mountains", "Glacier"
-"A type of literary work", "A short, fictional story", "Often teaches a moral lesson", "Features animals as characters", "Aesop is famous for them", "Fable"
-"A scientific principle", "States that energy cannot be created or destroyed", "Only transformed from one form to another", "Fundamental to physics and chemistry", "Applies to closed systems", "Conservation of Energy"
-"A type of animal", "Known for building dams", "Has a flat tail", "Semi-aquatic rodent", "Native to North America and Eurasia", "Beaver"
-"A type of building", "Used for religious worship", "Can be a church, mosque, synagogue, or temple", "Often has unique architecture", "Place for prayer and community", "House of Worship"
-"A type of art", "Involves creating images using light-sensitive materials", "Developed in the 19th century", "Can capture moments in time", "Digital versions are common today", "Photography"
-"A celestial body", "A ball of hot, glowing gas", "Produces light and heat through nuclear fusion", "Our sun is one", "Many found in galaxies", "Star"
-"A branch of science", "Studies the universe beyond Earth", "Includes stars, planets, galaxies", "Uses telescopes for observation", "Aims to understand cosmic phenomena", "Astronomy"
-"A type of writing system", "Uses characters representing words or ideas", "Chinese and Japanese use it", "Can be complex to learn", "Differs from alphabetic systems", "Logographic System"
-"A type of government", "Ruled by a single dictator", "Power is absolute and often oppressive", "Suppresses dissent", "North Korea is an example", "Dictatorship"
-"A natural phenomenon", "A long period of abnormally low rainfall", "Causes water shortages and crop failure", "Can lead to famine", "Affects ecosystems", "Drought"
-"A type of literary work", "A long narrative, typically fictional", "Often explores characters and plot in depth", "Can be historical, fantasy, or sci-fi", "Published as a book", "Novel"
-"A scientific method", "A testable explanation for an observation", "Can be supported or refuted by evidence", "A starting point for scientific inquiry", "Must be falsifiable", "Hypothesis"
-"A type of animal", "Known for its long neck and spots", "Tallest land animal", "Eats leaves from tall trees", "Native to Africa", "Giraffe"
-"A type of building", "Used for public performances", "Often has a stage and seating", "Can host plays, concerts, or ballets", "Often ornate and grand", "Opera House"
-"A type of energy", "Generated by the movement of water", "Used in hydroelectric power plants", "Renewable and clean", "Relies on dams and turbines", "Hydroelectric Power"
-"A branch of science", "Studies living organisms", "Includes botany, zoology, ecology", "Examines life processes and interactions", "Uses observation and experimentation", "Biology"
-"A type of structure", "Used to contain water", "Often built across rivers", "Generates electricity or controls floods", "Can be made of concrete or earth", "Dam"
-"A type of literary device", "A figure of speech comparing two unlike things", "Uses 'like' or 'as'", "Adds vividness to writing", "Example: 'He is as strong as an ox'", "Simile"
-"A type of animal", "A large marine reptile", "Known for its powerful jaws", "Lives in tropical and subtropical regions", "Can be saltwater or freshwater", "Crocodile"
-"A type of weather phenomenon", "A severe snowstorm with strong winds", "Reduces visibility significantly", "Can cause whiteout conditions", "Dangerous for travel", "Blizzard"
-"A field of study", "Examines past events and human societies", "Uses primary and secondary sources", "Aims to understand cause and effect", "Often involves research and interpretation", "History"
-"A type of energy", "Generated from the Earth's internal heat", "Used in geothermal power plants", "Clean and renewable", "Accessed through hot springs or steam vents", "Geothermal Energy"
-"A type of plant", "Has a thick, woody plant with a single main stem", "Produces leaves and branches", "Can live for many years", "Provides oxygen and shade", "Tree"
-"A type of musical instrument", "Produces sound by blowing air through it", "Can be woodwind or brass", "Flute, trumpet, clarinet are examples", "Used in orchestras and bands", "Wind Instrument"
 "A form of government", "Ruled by a king or queen", "Power is inherited", "Can be absolute or constitutional", "United Kingdom has one", "Monarchy"
 "A celestial body", "A collection of stars, gas and dust", "Held together by gravity", "Our solar system is part of one", "Can be spiral, elliptical, or irregular", "Galaxy"
 "A branch of science", "Studies the properties and behavior of matter and energy", "Includes mechanics, thermodynamics, electromagnetism", "Uses mathematical models", "Aims to understand fundamental laws of the universe", "Physics"
@@ -1231,10 +1212,9 @@
                 }
             }
 
-            // Timer functions for Ultra difficulty
+            // Timer functions
             function startTimer() {
-                timerDisplay.classList.remove('hidden');
-                timeLeft = ULTRA_TIME_LIMIT;
+                timeLeft = DIFFICULTY_TIME_LIMITS[currentDifficulty]; // Use difficulty-specific time limit
                 timeRemainingSpan.textContent = `Seconds left: ${timeLeft}`; // Update the span with text and number
                 timerDisplay.classList.remove('hidden'); // Show timer
                 timerDisplay.classList.remove('blue-text', 'red-text'); // Remove old color classes
@@ -1245,9 +1225,10 @@
                     timeRemainingSpan.textContent = `Seconds left: ${timeLeft}`; // Update the span with text and number
 
                     // Color transition from gray (rgb(128,128,128)) to red (rgb(255,0,0))
-                    // As timeLeft goes from 30 to 0, red component goes from 128 to 255, green/blue go from 128 to 0
-                    const redComponent = Math.min(255, 128 + Math.floor((ULTRA_TIME_LIMIT - timeLeft) / ULTRA_TIME_LIMIT * 127)); // 128 to 255
-                    const greenBlueComponent = Math.max(0, 128 - Math.floor((ULTRA_TIME_LIMIT - timeLeft) / ULTRA_TIME_LIMIT * 128)); // 128 to 0
+                    // Calculate based on the specific difficulty's total time
+                    const totalTime = DIFFICULTY_TIME_LIMITS[currentDifficulty];
+                    const redComponent = Math.min(255, 128 + Math.floor((totalTime - timeLeft) / totalTime * 127)); // 128 to 255
+                    const greenBlueComponent = Math.max(0, 128 - Math.floor((totalTime - timeLeft) / totalTime * 128)); // 128 to 0
                     timeRemainingSpan.style.color = `rgb(${redComponent}, ${greenBlueComponent}, ${greenBlueComponent})`;
 
 
@@ -1285,9 +1266,7 @@
 
                 // Stop any existing timer or animations when changing difficulty
                 clearInterval(timerInterval);
-                // --- FIX START ---
-                timerDisplay.classList.add('hidden'); // ALWAYS hide timer when changing difficulty
-                // --- FIX END ---
+                timerDisplay.classList.add('hidden'); // Always hide timer when changing difficulty
                 stopConfetti();
                 stopHappyEmojis();
                 stopSadEmojis();
@@ -1299,24 +1278,22 @@
                     easyButton.classList.add('selected');
                     loadCSVData(easyCsvData);
                     localStorage.setItem('gameDifficulty', 'easy');
-                    timerDisplay.classList.add('hidden');
                 } else if (difficulty === 'medium') {
                     mediumButton.classList.add('selected');
                     loadCSVData(mediumCsvData);
                     localStorage.setItem('gameDifficulty', 'medium');
-                    timerDisplay.classList.add('hidden');
                 } else if (difficulty === 'hard') {
                     hardButton.classList.add('selected');
                     loadCSVData(hardCsvData);
                     localStorage.setItem('gameDifficulty', 'hard');
-                    timerDisplay.classList.add('hidden');
                 } else if (difficulty === 'ultra') { // Handle Ultra difficulty
                     ultraButton.classList.add('selected');
                     loadCSVData(ultraCsvData); // Load Ultra data
-                    timerDisplay.classList.remove('hidden'); // Show timer only for Ultra
                     localStorage.setItem('gameDifficulty', 'ultra');
-                    timerDisplay.classList.remove('hidden');
                 }
+
+                // Start timer for all difficulties now
+                startTimer();
             }
 
             // Event Listeners
