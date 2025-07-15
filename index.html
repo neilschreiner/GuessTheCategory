@@ -122,8 +122,19 @@
             background-color: #6abff5; /* Lighter Blue */
         }
         #hardButton.selected {
-            background-color: #ed4c4c; /* Light Red */
+            background-color: #F06F6F; /* Light Red */
         }
+        #ultraButton.selected {
+            background-color: #DC143C; /* Cherry Red */
+            box-shadow: 0 0 15px #DC143C, 0 0 45px #DC143C, 0 0 60px #DC143C; /* Pulsing effect */
+            animation: pulse-fire 0.5s infinite alternate;
+        }
+
+        @keyframes pulse-fire {
+            0% { box-shadow: 0 0 15px #DC143C, 0 0 30px #DC143C, 0 0 45px #DC143C; }
+            100% { box-shadow: 0 0 25px #DC143C, 0 0 50px #DC143C, 0 0 75px #DC143C; }
+        }
+
 
         table {
             width: 100%;
@@ -254,7 +265,7 @@
         }
 
         /* Confetti styles */
-        #confetti-container, #emoji-container {
+        #confetti-container, #emoji-container, #balloon-container {
             position: fixed;
             top: 0;
             left: 0;
@@ -297,6 +308,44 @@
             }
         }
 
+        /* Balloon styles */
+        .balloon {
+            position: absolute;
+            width: 30px;
+            height: 40px;
+            background-color: #f00; /* Default, will be overridden by JS */
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            opacity: 0;
+            animation: shoot-from-sides 5s forwards; /* Changed animation name */
+            box-shadow: inset -3px -3px rgba(0,0,0,0.1);
+        }
+
+        .balloon::before {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1px;
+            height: 15px;
+            background-color: rgba(0,0,0,0.3);
+            border-radius: 0 0 50% 50%;
+        }
+
+        @keyframes shoot-from-sides { /* New keyframes for side shooting */
+            0% {
+                transform: translate(var(--x-start), var(--y)) rotate(var(--rotate-start));
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--x-end), var(--y-end)) rotate(var(--rotate-end));
+                opacity: 0;
+            }
+        }
+
         .version-tag {
             font-size: 0.6em; /* Very small print */
             color: #777;
@@ -316,18 +365,43 @@
             /* This div now naturally flows below game-container due to body's flex-direction: column */
             /* No specific styling needed here unless you want to constrain its width or add padding */
         }
+
+        /* Timer styles */
+        #timerDisplay {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex; /* Use flexbox to align text and number */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            gap: 10px; /* Space between "Seconds left:" and number */
+            color: gray; /* Default color for the whole timer display */
+        }
+        #timerDisplay span { /* Style for the numerical part of the timer */
+             transition: color 1s linear; /* Keep transition for the number itself */
+             color: inherit; /* Inherit color from parent, which will be set by JS */
+        }
+        #timerDisplay.blue-text span {
+            color: blue !important; /* Force blue on win */
+        }
+        #timerDisplay.red-text span {
+            color: red !important; /* Force red on run out or win with time left */
+        }
     </style>
 </head>
 <body>
     <div class="game-container">
-        <div class="game-background-image"></div> <!-- New div for background image -->
+        <div class="game-background-image"></div>
         <div class="difficulty-buttons">
             <button id="easyButton">Easy</button>
             <button id="mediumButton">Medium</button>
             <button id="hardButton">Hard</button>
+            <button id="ultraButton">Ultra</button>
         </div>
         <h1>Guess the Category!</h1>
         <p class="subtitle">Guess a hidden category or phrase by receiving five clues, one at a time.</p>
+
+        <div id="timerDisplay" class="hidden"><span id="timeRemaining"></span></div>
         <table id="clueTable">
             <thead>
                 <tr>
@@ -350,21 +424,21 @@
             <button id="submitGuess">Submit Guess</button>
         </div>
 
-        <p id="incorrectGuesses"></p> <!-- New element for incorrect guesses -->
-
+        <p id="incorrectGuesses"></p>
         <button id="playAgainButton" class="hidden">Play Again?</button>
 
         <p id="message"></p>
 
-        <img src="GTC-12345QuestionMark.jpg" alt="Question Mark Image" class="bottom-image"> <!-- Image added here -->
+        <img src="GTC-12345QuestionMark.jpg" alt="Question Mark Image" class="bottom-image">
     </div>
 
     <div id="version-container">
         <p id="versionTag" class="version-tag">Last updated: <span id="last-updated"></span> - <a href="https://neilschreiner.github.io/">&copy; neil</a> - <a href="https://github.com/neilschreiner/GuessTheCategory/blob/1e7c23010e8bac0af8d4786db867d07f02b51bf9/LICENSE">MIT License</a></p>
     </div>
 
-    <div id="confetti-container"></div> <!-- Confetti container -->
-    <div id="emoji-container"></div> <!-- Emoji container -->
+    <div id="confetti-container"></div>
+    <div id="emoji-container"></div>
+    <div id="balloon-container"></div>
 
     <script>
         // script.js content
@@ -373,6 +447,7 @@
             const easyButton = document.getElementById('easyButton');
             const mediumButton = document.getElementById('mediumButton');
             const hardButton = document.getElementById('hardButton');
+            const ultraButton = document.getElementById('ultraButton');
             const clueTableBody = document.querySelector('#clueTable tbody');
             const guessInput = document.getElementById('guessInput');
             const submitGuessButton = document.getElementById('submitGuess');
@@ -381,7 +456,9 @@
             const incorrectGuessesDisplay = document.getElementById('incorrectGuesses');
             const confettiContainer = document.getElementById('confetti-container');
             const emojiContainer = document.getElementById('emoji-container');
-            // Removed versionTag retrieval as it's now hardcoded
+            const balloonContainer = document.getElementById('balloon-container');
+            const timerDisplay = document.getElementById('timerDisplay');
+            const timeRemainingSpan = document.getElementById('timeRemaining');
 
             let gameData = [];
             let currentRow = [];
@@ -390,7 +467,13 @@
             let confettiInterval;
             let sadEmojiInterval;
             let happyEmojiInterval;
-            let lastUsedGameIndex = -1; // New variable to store the index of the last used game row
+            let balloonInterval;
+            let lastUsedGameIndex = -1;
+
+            let currentDifficulty = 'easy';
+            let timerInterval;
+            let timeLeft = 0;
+            const ULTRA_TIME_LIMIT = 30;
 
             // Helper function to normalize strings for comparison
             function normalizeString(str) {
@@ -402,18 +485,14 @@
                 const normalizedPlayer = normalizeString(playerGuess);
                 const normalizedCorrect = normalizeString(correctAnswer);
 
-                // Exact match
                 if (normalizedPlayer === normalizedCorrect) {
                     return true;
                 }
 
-                // Check if player's guess is contained within the correct answer
-                // e.g., "rocket" in "parts of a rocket"
-                if (normalizedCorrect.includes(normalizedPlayer) && normalizedPlayer.length > 2) { // Avoid very short substrings
+                if (normalizedCorrect.includes(normalizedPlayer) && normalizedPlayer.length > 2) {
                     return true;
                 }
 
-                // Check if correct answer is contained within player's guess (less common for these examples)
                 if (normalizedPlayer.includes(normalizedCorrect) && normalizedCorrect.length > 2) {
                      return true;
                 }
@@ -421,7 +500,7 @@
                 return false;
             }
 
-            // Easy CSV data embedded directly in the JavaScript (100+ entries)
+            // Easy CSV data (100+ entries)
             const easyCsvData = `
 "Has a trunk", "Can be found in Africa or Asia", "Eats plants", "Often grey", "Largest land animal", "Elephant"
 "You read them", "Have pages", "Contain stories or information", "Found in libraries", "Can be hard or soft cover", "Books"
@@ -442,7 +521,7 @@
 "A sweet treat", "Made from cocoa beans", "Comes in bars or pieces", "Can be dark, milk, or white", "Often given as a gift", "Chocolate"
 "A frozen dessert", "Made from milk and sugar", "Comes in many flavors", "Often served in a cone or bowl", "Melts quickly in the sun", "Ice Cream"
 "A popular sport", "Played with a ball and a net", "Two teams compete", "Can be played indoors or outdoors", "Requires running and jumping", "Basketball"
-"A type of transportation", "Has two wheels", "You pedal to move it", "Good for exercise", "Can be electric or manual", "Bicycle"
+"A type of transportation", "Has two wheels", "You pedal to move it", "Good for exercise", "Can be ridden on roads or trails", "Has handlebars and a seat", "Bicycle"
 "A place to buy food", "Has many aisles", "Sells fresh produce and packaged goods", "You use a cart to shop", "Often has a bakery and deli", "Grocery Store"
 "A small, winged insect", "Known for making honey", "Lives in a hive", "Pollinates flowers", "Can sting", "Bee"
 "A large, green vegetable", "Has many layers", "Can be eaten raw or cooked", "Often used in salads or soups", "Has a strong smell when cut", "Onion"
@@ -477,7 +556,7 @@
 "A sweet frozen treat", "Made from milk and sugar", "Comes in many flavors", "Served in cones or bowls", "Melts on a hot day", "Ice Cream"
 "A sport with a ball and hoop", "Players dribble and shoot", "Two teams compete", "Played on a court", "Michael Jordan was famous for it", "Basketball"
 "A two-wheeled vehicle", "Powered by pedaling", "Good for exercise", "Can be ridden on roads or trails", "Has handlebars and a seat", "Bicycle"
-"A place to buy groceries", "Has aisles of food", "You use a shopping cart", "Sells fruits, vegetables, meat", "Has a checkout counter", "Grocery Store"
+"A place to buy groceries", "Has aisles of food", "You use a shopping cart", "Sells fruits, vegetables, vegetables, meat", "Has a checkout counter", "Grocery Store"
 "A small flying insect", "Makes honey", "Lives in a hive", "Pollinates flowers", "Can sting", "Bee"
 "A green vegetable", "Has many layers", "Can make you cry when cut", "Used in salads and cooking", "Has a strong smell", "Onion"
 "A small rodent", "Known for bushy tail", "Climbs trees", "Eats nuts and seeds", "Often seen in parks", "Squirrel"
@@ -485,14 +564,14 @@
 "A warm drink", "Made from leaves steeped in hot water", "Can be black, green, or herbal", "Often served with milk or lemon", "Popular in the morning or afternoon", "Tea"
 "A large flightless bird", "Native to Africa", "Known for its speed", "Lays the largest eggs", "Can be ridden in some places", "Ostrich"
 "A place for books", "You can borrow stories", "Has quiet reading areas", "Often has computers and Wi-Fi", "A public resource for knowledge", "Library"
-"A round, citrus fruit", "Orange in color", "Can be peeled and eaten", "Used for juice", "Rich in Vitamin C", "Orange"
+"A round, citrus fruit", "Orange in color", "Can be peeled and eaten", "Used for juice", "Rich in Vitamin C", "Associated with sunshine", "Orange"
 "A place to watch movies", "Has a big screen", "Sells popcorn and candy", "You buy tickets to enter", "Dark inside during the show", "Movie Theater"
 "A small green vegetable", "Grows in pods", "Often found in frozen bags", "Sweet when cooked", "A good source of fiber", "Pea"
 "A striped wild cat", "Native to Asia", "A powerful hunter", "Known for its roar", "Largest cat species", "Tiger"
 "A card game", "Involves betting and and strategy", "Players try to get the best hand", "Can be played with friends or in casinos", "Often associated with chips", "Poker"
 "A curved yellow fruit", "Grows in bunches", "Peel before eating", "Favorite food of monkeys", "Good source of potassium", "Banana"
 "A board game", "Buy and sell properties", "Try to bankrupt opponents", "Roll dice to move", "Has properties like Park Place and Boardwalk", "Monopoly"
-"A carbonated drink", "Sweet and fizzy", "Comes in many flavors", "Served cold", "Can be regular or diet", "Soda"
+"A carbonated drink", "Sweet and fizzy", "Comes in many flavors", "Served cold", "Can be diet or regular", "Soda"
 "A large, aquatic mammal", "Lives in the ocean", "Known for its blowhole", "Can be very large", "Sings complex songs underwater", "Whale"
 "A small, flying insect", "Known for biting", "Can spread diseases", "Active in warm weather", "Makes a buzzing sound", "Mosquito"
 "A type of footwear", "Worn on the foot and ankle", "Can be for sports or fashion", "Often made of canvas or leather", "Has laces", "Sneaker"
@@ -579,10 +658,10 @@
 "A type of weather phenomenon", "A severe snowstorm with strong winds", "Reduces visibility significantly", "Can cause whiteout conditions", "Dangerous for travel", "Blizzard"
 "A field of study", "Examines past events and human societies", "Uses primary and secondary sources", "Aims to understand cause and effect", "Often involves research and interpretation", "History"
 "A type of energy", "Generated from the Earth's internal heat", "Used in geothermal power plants", "Clean and renewable", "Accessed through hot springs or steam vents", "Geothermal Energy"
-"A type of plant", "Has a thick, woody stem", "Produces leaves and branches", "Can live for many years", "Provides oxygen and shade", "Tree"
+"A type of plant", "Has a thick, woody plant with a single main stem", "Produces leaves and branches", "Can live for many years", "Provides oxygen and shade", "Tree"
 "A type of musical instrument", "Produces sound by blowing air through it", "Can be woodwind or brass", "Flute, trumpet, clarinet are examples", "Used in orchestras and bands", "Wind Instrument"
 "A form of government", "Ruled by a king or queen", "Power is inherited", "Can be absolute or constitutional", "United Kingdom has one", "Monarchy"
-"A celestial body", "A collection of stars, gas, and dust", "Held together by gravity", "Our solar system is part of one", "Can be spiral, elliptical, or irregular", "Galaxy"
+"A celestial body", "A collection of stars, gas and dust", "Held together by gravity", "Our solar system is part of one", "Can be spiral, elliptical, or irregular", "Galaxy"
 "A branch of science", "Studies the properties and behavior of matter and energy", "Includes mechanics, thermodynamics, electromagnetism", "Uses mathematical models", "Aims to understand fundamental laws of the universe", "Physics"
 "A type of writing system", "Uses a set of letters to represent sounds", "English uses it", "Simpler than logographic systems", "Can be phonetic", "Alphabet"
 "A natural phenomenon", "A large wave caused by underwater earthquakes or volcanic eruptions", "Can cause massive destruction on coastlines", "Travels across oceans", "Often mistaken for tidal waves", "Tsunami"
@@ -650,6 +729,100 @@
 "A historical period", "The period following the Renaissance", "Characterized by scientific and intellectual advancements", "Emphasized reason and individualism", "Led to revolutions in thought and society", "Enlightenment"
 `;
 
+            // Ultra CSV data (NEW) embedded directly in the JavaScript
+            const ultraCsvData = `
+"A quantum mechanical phenomenon", "Particles can exist in multiple states simultaneously", "Collapses to a single state upon observation", "Schrödinger's cat thought experiment", "Fundamental to quantum computing", "Superposition"
+"A mathematical concept", "Represents an infinitely long decimal expansion", "Ratio of a circle's circumference to its diameter", "Approximately 3.14159", "Used in geometry and trigonometry", "Pi"
+"A philosophical problem", "Concerns the relationship between mind and body", "Asks how mental states relate to physical states", "Dualism vs. Monism", "Descartes contributed to it", "Mind-Body Problem"
+"A psychological phenomenon", "Tendency to interpret new evidence as confirmation of one's existing beliefs", "Leads to biased information processing", "Can affect decision-making", "Often seen in political discourse", "Confirmation Bias"
+"A scientific principle", "States that a system tends toward increasing disorder over time", "Second law of thermodynamics", "Applies to isolated systems", "Explains why things break down", "Entropy"
+"A linguistic phenomenon", "The study of the historical development of language", "Examines changes in sounds, grammar, and vocabulary", "Reconstructs ancient languages", "Indo-European is a major family", "Historical Linguistics"
+"A celestial object", "A region of spacetime where gravity is so strong that nothing can escape", "Forms from the collapse of massive stars", "Has an event horizon", "Can be supermassive at galaxy centers", "Black Hole"
+"A mathematical structure", "A set of points and connections between them", "Used to model networks and relationships", "Includes nodes and edges", "Used in computer science and social networks", "Graph Theory"
+"A philosophical school of thought", "Emphasizes the individual's existence, freedom, and responsibility", "Focuses on subjective experience", "Kierkegaard, Nietzsche, Sartre were proponents", "Often associated with anxiety and dread", "Existentialism"
+"A cognitive bias", "Tendency to overestimate one's own abilities", "Often seen in unskilled individuals", "Causes overconfidence", "Named after a study of bank robbers", "Dunning-Kruger Effect"
+"A scientific theory", "Describes the large-scale structure and evolution of the universe", "States that the universe began from a hot, dense state", "Supported by cosmic microwave background radiation", "Led to the expansion of space", "Big Bang Theory"
+"A literary movement", "Emphasized emotion, individualism, and glorification of nature", "Reacted against Enlightenment rationalism", "Late 18th to mid-19th century", "Wordsworth, Byron, Shelley were proponents", "Romanticism"
+"A mathematical concept", "A function that is its own derivative", "Used to model exponential growth or decay", "Base is Euler's number (e)", "Appears in calculus and complex analysis", "Exponential Function"
+"A type of currency", "A decentralized digital currency", "Uses cryptography for security", "Operates on a blockchain", "First created by Satoshi Nakamoto", "Bitcoin"
+"A philosophical concept", "The inherent meaninglessness of life", "Often associated with existentialism", "Camus wrote about it in 'The Myth of Sisyphus'", "Can lead to despair or rebellion", "Absurdism"
+"A scientific principle", "States that the total momentum of a system remains constant if no external forces act on it", "Applies to collisions and explosions", "Fundamental to classical mechanics", "Related to Newton's third law", "Conservation of Momentum"
+"A type of logical fallacy", "Assuming that because two events occurred together, one caused the other", "Correlation does not imply causation", "Often misused in arguments", "Example: 'Ice cream sales increase with crime rates'", "False Cause"
+"A branch of physics", "Studies the behavior of matter and light at the atomic and subatomic level", "Developed in the early 20th century", "Includes concepts like wave-particle duality", "Heisenberg's uncertainty principle is central", "Quantum Mechanics"
+"A type of artistic technique", "Creates an illusion of three-dimensionality on a two-dimensional surface", "Uses perspective and shading", "Developed during the Renaissance", "Leonardo da Vinci was a master", "Chiaroscuro"
+"A philosophical concept", "The idea that all events are predetermined", "No free will", "Can be theological or scientific", "Opposite of libertarianism", "Determinism"
+"A mathematical concept", "A sequence where each number is the sum of the two preceding ones", "Starts with 0 and 1", "Appears in nature and art (e.g., golden ratio)", "Named after an Italian mathematician", "Fibonacci Sequence"
+"A type of legal system", "Based on judicial precedent rather than codified laws", "Originated in England", "Used in many former British colonies", "Judges interpret laws based on past rulings", "Common Law"
+"A cognitive bias", "Tendency to rely too heavily on the first piece of information offered", "Influences subsequent judgments", "Can affect negotiations and pricing", "Often used in sales tactics", "Anchoring Bias"
+"A scientific field", "Studies the origin, evolution, and fate of the universe", "Includes the Big Bang, dark matter, dark energy", "Combines astronomy and physics", "Aims to understand the cosmos", "Cosmology"
+"A literary genre", "Characterized by a bleak or dystopian future", "Often explores themes of technological control or societal decay", "Huxley's 'Brave New World' is an example", "Often critical of modern society", "Dystopian Fiction"
+"A type of logical argument", "Moves from specific observations to a general conclusion", "Used in scientific research", "Conclusions are probable, not certain", "Opposite of deduction", "Inductive Reasoning"
+"A philosophical problem", "Asks whether artificial intelligence can truly think or have consciousness", "Turing Test is a famous proposal", "Concerns the nature of intelligence", "Searle's Chinese Room argument is relevant", "Strong AI Problem"
+"A mathematical concept", "A measure of the likelihood of an event occurring", "Expressed as a number between 0 and 1", "Used in statistics and risk assessment", "Can be theoretical or experimental", "Probability"
+"A type of artistic movement", "Emphasized subjective experience and emotional expression", "Distorted reality to convey inner feelings", "Early 20th century Germany", "Artists like Edvard Munch", "Expressionism"
+"A scientific principle", "States that every action has an equal and opposite reaction", "Third law of motion", "Applies to forces between interacting objects", "Explains propulsion", "Newton's Third Law"
+"A philosophical school of thought", "Emphasizes the idea that value is subjective", "Argues that moral truths are not objective", "Often associated with postmodernism", "Can lead to relativism", "Nihilism"
+"A mathematical concept", "A non-Euclidean geometry", "Deals with curved spaces", "Used in Einstein's theory of relativity", "Contrasts with flat Euclidean geometry", "Riemannian Geometry"
+"A historical event", "The widespread technological and industrial advancement from the 18th to 19th centuries", "Saw the invention of the steam engine and textile machinery", "Led to urbanization and new social classes", "Transformed economies and societies", "Industrial Revolution"
+"A cognitive bias", "Tendency to see patterns or connections in random or meaningless data", "Can lead to superstitious beliefs", "Often observed in gamblers", "Example: seeing faces in clouds", "Apophenia"
+"A field of study", "Examines the characteristics and distribution of human populations", "Includes birth rates, death rates, migration", "Uses statistical methods", "Aims to understand population changes", "Demography"
+"A type of literary work", "A narrative within a narrative", "A story told by a character within another story", "Often provides a different perspective or context", "Frankenstein uses this technique", "Frame Story"
+"A scientific principle", "States that the universe is homogeneous and isotropic on large scales", "No special center or edge", "Fundamental to modern cosmology", "Supports the Big Bang theory", "Cosmological Principle"
+"A type of animal behavior", "A fixed, unlearned pattern of behavior", "Triggered by specific stimuli", "Cannot be modified by learning", "Example: spider web spinning", "Instinct"
+"A philosophical concept", "The theory that all events are ultimately determined by causes external to the will", "Often used to argue against free will", "Can be hard or soft", "Related to fate and destiny", "Determinism"
+"A mathematical concept", "The limit of a function as the independent variable approaches a certain value", "Fundamental to calculus", "Used to define continuity and derivatives", "Can be finite or infinite", "Limit"
+"A type of government", "Ruled by a single religious leader or institution", "Laws based on religious texts", "Often seen in ancient societies", "Iran has elements of this", "Theocracy"
+"A historical event", "The period of political and social upheaval in France from 1789 to 1799", "Overthrew the monarchy and established a republic", "Led to the rise of Napoleon", "Influenced subsequent revolutions", "French Revolution"
+"A type of cognitive bias", "Tendency to search for, interpret, favor, and recall information that confirms one's beliefs", "Ignoring contradictory evidence", "Strengthens existing opinions", "Contributes to polarization", "Confirmation Bias"
+"A scientific field", "Studies ancient life forms through fossils", "Examines prehistoric plants and animals", "Helps reconstruct Earth's past ecosystems", "Works closely with geology", "Paleontology"
+"A literary device", "A reference to a person, place, event, or literary work", "Assumes the audience has prior knowledge", "Adds depth and meaning to text", "Can be biblical, mythological, or historical", "Allusion"
+"A type of celestial object", "A massive star that has exhausted most of its nuclear fuel", "Undergoes a catastrophic explosion", "Can outshine an entire galaxy for a time", "Leaves behind a neutron star or black hole", "Supernova"
+"A philosophical problem", "Asks if consciousness is merely a product of physical processes in the brain", "Debate between materialists and dualists", "Challenges our understanding of self", "Related to the hard problem of consciousness", "Hard Problem of Consciousness"
+"A mathematical concept", "A collection of distinct objects or elements", "Can be finite or infinite", "Used in set theory and logic", "Union, intersection, complement are operations", "Set"
+"A form of communication", "Uses a formal system of signs, sounds, or gestures", "Governed by grammatical rules", "Used by humans for complex thought and expression", "English, Spanish, Chinese are examples", "Language"
+"A historical period", "A time of great innovation and social change in Europe during the 17th and 18th centuries", "Emphasized reason, science, and individualism", "Challenged traditional authority", "Influenced by thinkers like Locke and Rousseau", "Age of Enlightenment"
+"A type of cognitive bias", "Tendency for individuals to work less hard in a group than they would individually", "Reduced accountability in larger groups", "Can impact team productivity", "Also known as free-riding", "Social Loafing"
+"A scientific principle", "States that the observed universe appears roughly the same in all directions", "Supports the idea of a homogeneous and isotropic universe", "Fundamental to modern cosmology", "Used to extrapolate observations", "Isotropy"
+"A literary genre", "A fictional narrative that explores themes of science and technology", "Often set in the future or on other planets", "Features advanced gadgets, space travel, AI", "Ray Bradbury, Isaac Asimov are famous authors", "Science Fiction"
+"A type of government", "Ruled by a few individuals based on their wealth or property ownership", "Power held by the rich", "Can lead to corruption and inequality", "Often contrasts with democracy", "Plutocracy"
+"A mathematical concept", "A measure of the dispersion of a set of data points around their mean", "Indicates how spread out numbers are", "Used in statistics and probability", "Square root of variance", "Standard Deviation"
+"A philosophical problem", "Explores the nature of existence, being, and reality", "One of the fundamental branches of metaphysics", "Asks questions like 'What is real?'", "Heidegger and Aristotle were proponents", "Ontology"
+"A scientific field", "Studies the properties and interactions of matter and energy", "Fundamental science", "Includes mechanics, thermodynamics, electromagnetism, quantum mechanics", "Aims to understand the universe", "Physics"
+"A type of historical source", "An original document or artifact from the time period being studied", "Diaries, letters, photographs, eyewitness accounts are examples", "Provides direct evidence", "Essential for historical research", "Primary Source"
+"A literary device", "The use of clues or hints to suggest events that will occur later in the story", "Creates suspense and anticipation", "Often subtle or overt", "Builds up to a climax", "Foreshadowing"
+"A type of celestial object", "A small, irregularly shaped body orbiting a planet or star", "Often a captured asteroid or debris", "Mars has two, Phobos and Deimos", "Can be artificial or natural", "Moon (natural satellite)"
+"A mathematical concept", "A set of values that can be mapped to another set of values", "Each input has exactly one output", "Used in algebra and calculus", "Can be one-to-one or onto", "Function"
+"A philosophical school of thought", "Believes that knowledge is primarily derived from sensory experience", "Emphasizes observation and experimentation", "Locke, Berkeley, Hume were proponents", "Opposite of rationalism", "Empiricism"
+"A type of chemical reaction", "A chemical process that releases heat into its surroundings", "Causes a rise in temperature", "Combustion is a common example", "Opposite of endothermic", "Exothermic Reaction"
+"A historical period", "The period of renewed interest in classical culture and learning in Europe during the 14th to 17th centuries", "Marked by a shift from religious to secular thought", "Led to new art, science, and literature", "Began in Italy", "Renaissance"
+"A cognitive bias", "Tendency to favor information that confirms one's existing beliefs", "Ignoring contradictory evidence", "Leads to biased decision-making", "Can be conscious or unconscious", "Confirmation Bias"
+"A scientific principle", "States that the oldest layers of rock are at the bottom and the youngest are at the top", "Used to determine the relative ages of rock strata", "Fundamental to stratigraphy", "Proposed by Nicolas Steno", "Law of Superposition"
+"A type of animal", "A marine mammal known for its intelligence", "Has a blowhole on its head", "Uses echolocation to navigate", "Often seen in pods", "Dolphin"
+"A field of study", "Examines the Earth's physical features and human activities", "Includes physical and human branches", "Studies landscapes, populations, climate", "Uses maps and spatial analysis", "Geography"
+"A literary device", "The use of words to convey a meaning that is the opposite of its literal meaning", "Can be verbal, situational, or dramatic", "Often used for humor or satire", "Sarcasm is a common form", "Irony"
+"A type of celestial object", "A small, icy body that orbits the Sun", "Often classified as a dwarf planet or small solar system body", "Pluto is one", "Located beyond Neptune in the Kuiper Belt", "Trans-Neptunian Object"
+"A mathematical concept", "A vector space equipped with a norm that induces a metric", "A complete normed vector space", "Fundamental in functional analysis", "Named after a Polish mathematician", "Banach Space"
+"A philosophical problem", "Asks whether moral judgments are objective truths or subjective preferences", "Debate between moral realists and anti-realists", "Concerns the foundation of ethics", "Influences legal and political theory", "Meta-ethics"
+"A scientific field", "Studies the structure, properties, and reactions of chemical substances", "Central science", "Includes organic, inorganic, physical and analytical branches", "Aims to understand matter", "Chemistry"
+"A historical period", "The period of technological and cultural progress during the 19th and early 20th centuries", "Saw the invention of electricity, telephone, automobile", "Followed the Industrial Revolution", "Led to widespread modernization", "Second Industrial Revolution"
+"A type of cognitive bias", "Tendency to believe that one has foreseen an event after it has occurred", "The 'I knew it all along' effect", "Can affect memory and decision-making", "Makes past events seem more predictable", "Hindsight Bias"
+"A literary genre", "A fictional work set in a historical period", "Combines historical facts with fictional characters or events", "Often explores real events through personal stories", "Walter Scott is considered a pioneer", "Historical Fiction"
+"A scientific principle", "States that a living organism's genotype is inherited, but its phenotype is influenced by both genetics and environment", "Explains individual differences", "Nature vs. Nurture debate", "Fundamental to genetics", "Genotype-Phenotype Distinction"
+"A type of animal", "A marine reptile with a hard shell", "Spends most of its life in the ocean", "Lays eggs on beaches", "Can be green, loggerhead, or leatherback", "Sea Turtle"
+"A field of study", "Examines the structures and processes of the human body", "Includes anatomy, physiology, histology", "Studies how the body functions", "Essential for medicine and health sciences", "Human Physiology"
+"A type of art", "A style that uses distortion and exaggeration for emotional effect", "Often depicts a subjective reality", "Famous artists include Van Gogh and Picasso", "Precursor to abstract art", "Expressionism"
+"A philosophical concept", "The theory that sensory experience is the ultimate source of all knowledge", "Emphasizes empirical evidence", "John Locke and David Hume were proponents", "Contrasts with rationalism", "Empiricism"
+"A mathematical concept", "A sequence of numbers in which each term after the first is found by multiplying the previous one by a fixed, non-zero number", "Example: 2, 4, 8, 16...", "Used in financial calculations", "Has a common ratio", "Geometric Progression"
+"A type of legal system", "A legal tradition that originated in ancient Rome", "Based on written codes and statutes", "Used in many European and Latin American countries", "Judges apply codified laws rather than precedent", "Civil Law"
+"A cognitive bias", "Tendency to think that others agree with your opinions more than they actually do", "Overestimating the commonality of one's own beliefs", "Can lead to groupthink", "Contributes to false consensus", "False Consensus Effect"
+"A scientific field", "Studies ancient human societies through archaeological excavation and artifact analysis", "Reconstructs past cultures and behaviors", "Works closely with anthropology", "Examines material remains", "Archaeology"
+"A type of literary work", "A narrative poem that tells a story, often about heroes or historical events", "Longer than a ballad", "Can be epic or lyric", "Often sung or recited", "Narrative Poem"
+"A celestial object", "A star in the final stages of its life cycle", "Has collapsed to a very dense state", "Emits light but no longer fuses hydrogen", "Can be a white dwarf, neutron star, or black hole", "Stellar Remnant"
+"A philosophical problem", "Asks whether knowledge is possible", "Examines the nature and limits of human understanding", "Skepticism is a prominent viewpoint", "Central to epistemology", "Problem of Knowledge"
+"A mathematical concept", "A number that can be expressed as a fraction p/q of two integers", "Cannot be expressed as a simple fraction (e.g., pi, square root of 2)", "Its decimal representation is non-repeating and non-terminating", "Contrasts with rational numbers", "Irrational Number"
+"A type of government", "Ruled by a small group of individuals who hold power through force or wealth", "Often characterized by corruption and self-interest", "Contrasts with democracy or aristocracy", "Can be a military junta", "Oligarchy (Plutocracy or Junta)"
+`;
+
             // Function to load the CSV data from the embedded string
             function loadCSVData(csvString) {
                 try {
@@ -709,6 +882,12 @@
                 stopSadEmojis();
                 stopHappyEmojis();
                 emojiContainer.innerHTML = '';
+                stopBalloons(); // Stop balloons
+                balloonContainer.innerHTML = ''; // Clear balloons
+
+                // Stop any running timer
+                clearInterval(timerInterval);
+                timerDisplay.classList.add('hidden'); // Hide timer by default
 
                 body.classList.remove('correct-bg', 'incorrect-bg');
 
@@ -745,6 +924,11 @@
                 document.getElementById('answer').textContent = currentRow[maxClues];
 
                 revealNextClue();
+
+                // Start timer if Ultra difficulty is selected
+                if (currentDifficulty === 'ultra') {
+                    startTimer();
+                }
             }
 
             // Function to reveal the next clue
@@ -764,7 +948,7 @@
             function checkGuess() {
                 const playerGuess = guessInput.value.trim();
                 const correctAnswer = currentRow[maxClues].replace(/^"|"$/g, '').trim(); // Get raw correct answer
-
+                
                 // Input validation: if guess is empty, shake input box and return
                 if (playerGuess === '') {
                     messageDisplay.textContent = 'Please enter a guess.';
@@ -781,6 +965,13 @@
                     submitGuessButton.disabled = true;
                     guessInput.disabled = true;
                     submitGuessButton.classList.add('hidden');
+
+                    clearInterval(timerInterval); // Stop timer on correct guess
+                    if (currentDifficulty === 'ultra') {
+                        timerDisplay.classList.remove('red-text');
+                        timerDisplay.classList.add('blue-text'); // Timer turns blue on win
+                        startBalloons(); // Start balloons for Ultra win
+                    }
 
                     for (let i = 1; i <= currentClueIndex; i++) {
                         document.getElementById(`clue${i}-row`).classList.add('correct-clue-revealed');
@@ -838,6 +1029,14 @@
                 }
                 document.getElementById('answer-row').classList.remove('hidden');
                 submitGuessButton.classList.add('hidden');
+                
+                // If the player wins before the timer runs out, and it's Ultra difficulty,
+                // the timer should stop and be red. This is handled slightly differently if timer runs out vs win.
+                if (currentDifficulty === 'ultra' && !isCorrectGuess && timeLeft > 0) {
+                     clearInterval(timerInterval);
+                     timerDisplay.classList.remove('blue-text');
+                     timerDisplay.classList.add('red-text');
+                }
             }
 
             // Confetti functions
@@ -974,26 +1173,149 @@
                 }
             }
 
+            // Balloon functions
+            function createBalloon() {
+                const balloon = document.createElement('div');
+                balloon.classList.add('balloon');
+                balloon.style.backgroundColor = getRandomColor();
+
+                // Randomly decide to come from left or right
+                const fromLeft = Math.random() < 0.5;
+                let startX, endX;
+                const startY = Math.random() * window.innerHeight; // Y position within viewport
+                const endY = Math.random() * window.innerHeight; // Y position within viewport
+
+                if (fromLeft) {
+                    startX = -50; // Start off-screen left
+                    endX = window.innerWidth + 50; // End off-screen right
+                } else {
+                    startX = window.innerWidth + 50; // Start off-screen right
+                    endX = -50; // End off-screen left
+                }
+                
+                const rotateStart = Math.random() * 360 - 180; // Random initial rotation
+                const rotateEnd = rotateStart + (Math.random() * 720 - 360); // Random end rotation
+
+                balloon.style.setProperty('--x-start', `${startX}px`); // Use x-start
+                balloon.style.setProperty('--y', `${startY}px`); // Use y for consistent vertical start
+                balloon.style.setProperty('--x-end', `${endX}px`);
+                balloon.style.setProperty('--y-end', `${endY}px`); // Use y-end for consistent vertical end
+                balloon.style.setProperty('--rotate-start', `${rotateStart}deg`);
+                balloon.style.setProperty('--rotate-end', `${rotateEnd}deg`);
+
+                balloonContainer.appendChild(balloon);
+
+                balloon.addEventListener('animationend', () => {
+                    balloon.remove();
+                });
+            }
+
+            function startBalloons() {
+                stopBalloons();
+                balloonInterval = setInterval(() => {
+                    for (let i = 0; i < 3; i++) { // Create a few balloons at a time
+                        createBalloon();
+                    }
+                }, 300); // Create new balloons every 300ms
+
+                // Stop balloons after a few seconds (e.g., 4 seconds)
+                setTimeout(() => {
+                    stopBalloons();
+                }, 4000);
+            }
+
+            function stopBalloons() {
+                if (balloonInterval) {
+                    clearInterval(balloonInterval);
+                    balloonInterval = null;
+                }
+            }
+
+            // Timer functions for Ultra difficulty
+            function startTimer() {
+                timerDisplay.classList.remove('hidden');
+                timeLeft = ULTRA_TIME_LIMIT;
+                timeRemainingSpan.textContent = `Seconds left: ${timeLeft}`; // Update the span with text and number
+                timerDisplay.classList.remove('hidden'); // Show timer
+                timerDisplay.classList.remove('blue-text', 'red-text'); // Remove old color classes
+                timeRemainingSpan.style.color = 'gray'; // Start numerical part as gray
+
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    timeRemainingSpan.textContent = `Seconds left: ${timeLeft}`; // Update the span with text and number
+
+                    // Color transition from gray (rgb(128,128,128)) to red (rgb(255,0,0))
+                    // As timeLeft goes from 30 to 0, red component goes from 128 to 255, green/blue go from 128 to 0
+                    const redComponent = Math.min(255, 128 + Math.floor((ULTRA_TIME_LIMIT - timeLeft) / ULTRA_TIME_LIMIT * 127)); // 128 to 255
+                    const greenBlueComponent = Math.max(0, 128 - Math.floor((ULTRA_TIME_LIMIT - timeLeft) / ULTRA_TIME_LIMIT * 128)); // 128 to 0
+                    timeRemainingSpan.style.color = `rgb(${redComponent}, ${greenBlueComponent}, ${greenBlueComponent})`;
+
+
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        timeRemainingSpan.textContent = "Seconds left: 0"; // Final text for 0 seconds
+                        timeRemainingSpan.style.color = 'red';
+                        onTimerEnd();
+                    }
+                }, 1000); // Update every second
+            }
+
+            function onTimerEnd() {
+                if (submitGuessButton.disabled) return; // Game already over (won or lost)
+
+                messageDisplay.textContent = "You ran out of time!";
+                submitGuessButton.disabled = true;
+                guessInput.disabled = true;
+                submitGuessButton.classList.add('hidden');
+                
+                revealAnswer(false); // Reveal answer even if out of time
+                playAgainButton.classList.remove('hidden');
+                startSadEmojis(); // Sad emojis for running out of time
+                body.classList.remove('correct-bg');
+                body.classList.add('incorrect-bg');
+                document.getElementById('answer-row').classList.add('lost-game'); // Apply lost-game class
+            }
 
             // Difficulty button handling
             function selectDifficulty(difficulty) {
                 easyButton.classList.remove('selected');
                 mediumButton.classList.remove('selected');
                 hardButton.classList.remove('selected');
+                ultraButton.classList.remove('selected'); // Remove selected from Ultra
+
+                // Stop any existing timer or animations when changing difficulty
+                clearInterval(timerInterval);
+                // --- FIX START ---
+                timerDisplay.classList.add('hidden'); // ALWAYS hide timer when changing difficulty
+                // --- FIX END ---
+                stopConfetti();
+                stopHappyEmojis();
+                stopSadEmojis();
+                stopBalloons();
+
+                currentDifficulty = difficulty; // Update current difficulty tracker
 
                 if (difficulty === 'easy') {
                     easyButton.classList.add('selected');
                     loadCSVData(easyCsvData);
                     localStorage.setItem('gameDifficulty', 'easy');
+                    timerDisplay.classList.add('hidden');
                 } else if (difficulty === 'medium') {
                     mediumButton.classList.add('selected');
                     loadCSVData(mediumCsvData);
                     localStorage.setItem('gameDifficulty', 'medium');
-                }
-                else {
+                    timerDisplay.classList.add('hidden');
+                } else if (difficulty === 'hard') {
                     hardButton.classList.add('selected');
                     loadCSVData(hardCsvData);
                     localStorage.setItem('gameDifficulty', 'hard');
+                    timerDisplay.classList.add('hidden');
+                } else if (difficulty === 'ultra') { // Handle Ultra difficulty
+                    ultraButton.classList.add('selected');
+                    loadCSVData(ultraCsvData); // Load Ultra data
+                    timerDisplay.classList.remove('hidden'); // Show timer only for Ultra
+                    localStorage.setItem('gameDifficulty', 'ultra');
+                    timerDisplay.classList.remove('hidden');
                 }
             }
 
@@ -1012,6 +1334,7 @@
             easyButton.addEventListener('click', () => selectDifficulty('easy'));
             mediumButton.addEventListener('click', () => selectDifficulty('medium'));
             hardButton.addEventListener('click', () => selectDifficulty('hard'));
+            ultraButton.addEventListener('click', () => selectDifficulty('ultra')); // Event listener for Ultra button
 
             // Initial load: default to Easy or load from localStorage
             const storedDifficulty = localStorage.getItem('gameDifficulty');
