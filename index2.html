@@ -1299,17 +1299,17 @@
                     easyButton.classList.add('selected');
                     loadCSVData(easyCsvData);
                     localStorage.setItem('gameDifficulty', 'easy');
-                    // REMOVE THIS LINE: timerDisplay.classList.add('hidden');
+                    location.reload();
                 } else if (difficulty === 'medium') {
                     mediumButton.classList.add('selected');
                     loadCSVData(mediumCsvData);
                     localStorage.setItem('gameDifficulty', 'medium');
-                    // REMOVE THIS LINE: timerDisplay.classList.add('hidden');
+                    location.reload();
                 } else if (difficulty === 'hard') {
                     hardButton.classList.add('selected');
                     loadCSVData(hardCsvData);
                     localStorage.setItem('gameDifficulty', 'hard');
-                    // REMOVE THIS LINE: timerDisplay.classList.add('hidden');
+                    location.reload();
                 } else if (difficulty === 'ultra') { // Handle Ultra difficulty
                     ultraButton.classList.add('selected');
                     loadCSVData(ultraCsvData); // Load Ultra data
