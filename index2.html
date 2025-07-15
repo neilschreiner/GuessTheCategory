@@ -1299,17 +1299,14 @@
                     easyButton.classList.add('selected');
                     loadCSVData(easyCsvData);
                     localStorage.setItem('gameDifficulty', 'easy');
-                    location.reload();
                 } else if (difficulty === 'medium') {
                     mediumButton.classList.add('selected');
                     loadCSVData(mediumCsvData);
                     localStorage.setItem('gameDifficulty', 'medium');
-                    location.reload();
                 } else if (difficulty === 'hard') {
                     hardButton.classList.add('selected');
                     loadCSVData(hardCsvData);
                     localStorage.setItem('gameDifficulty', 'hard');
-                    location.reload();
                 } else if (difficulty === 'ultra') { // Handle Ultra difficulty
                     ultraButton.classList.add('selected');
                     loadCSVData(ultraCsvData); // Load Ultra data
@@ -1340,6 +1337,7 @@
             const storedDifficulty = localStorage.getItem('gameDifficulty');
             if (storedDifficulty) {
                 selectDifficulty(storedDifficulty);
+                location.reload();
             } else {
                 selectDifficulty('easy'); // Default if no difficulty is stored
             }
