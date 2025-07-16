@@ -49,7 +49,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url('https://placehold.co/600x400/f4f4f4/000000?text=GTC-12345QuestionMark.jpg'); /* Placeholder image */
+            background-image: url('https://neilschreiner.github.io/GuessTheCategory/GTC-12345QuestionMark.jpg'); /* Placeholder image */
             background-repeat: no-repeat;
             background-position: center top; /* Position it at the top center */
             background-size: 80% auto; /* Adjust size to fit well */
@@ -432,7 +432,7 @@
 
         <p id="message"></p>
 
-        <img src="https://placehold.co/600x400/f4f4f4/000000?text=GTC-12345QuestionMark.jpg" alt="Question Mark Image" class="bottom-image">
+        <img src="https://neilschreiner.github.io/GuessTheCategory/GTC-12345QuestionMark.jpg" alt="Question Mark Image" class="bottom-image">
     </div>
 
     <div id="version-container">
@@ -467,7 +467,7 @@
             const confettiContainer = document.getElementById('confetti-container');
             const emojiContainer = document.getElementById('emoji-container');
             const balloonContainer = document.getElementById('balloon-container');
-            
+
             // Initialize global timer elements inside DOMContentLoaded
             timerDisplay = document.getElementById('timerDisplay');
             timeRemainingValue = document.getElementById('timeRemainingValue');
@@ -484,7 +484,7 @@
 
             let currentDifficulty = 'easy';
             let timeLeft = 0;
-            
+
             // Define time limits for each difficulty
             const DIFFICULTY_TIME_LIMITS = {
                 'easy': 270,
@@ -939,7 +939,7 @@
             function checkGuess() {
                 const playerGuess = guessInput.value.trim();
                 const correctAnswer = currentRow[maxClues].replace(/^"|"$/g, '').trim(); // Get raw correct answer
-                
+
                 // Input validation: if guess is empty, shake input box and return
                 if (playerGuess === '') {
                     messageDisplay.textContent = 'Please enter a guess.';
@@ -1021,7 +1021,7 @@
                 }
                 document.getElementById('answer-row').classList.remove('hidden');
                 submitGuessButton.classList.add('hidden');
-                
+
                 // If the player wins before the timer runs out, and it's Ultra difficulty,
                 // the timer should stop and be red. This is handled slightly differently if timer runs out vs win.
                 if (currentDifficulty === 'ultra' && !isCorrectGuess && timeLeft > 0) {
@@ -1184,7 +1184,7 @@
                     startX = window.innerWidth + 50; // Start off-screen right
                     endX = -50; // End off-screen left
                 }
-                
+
                 const rotateStart = Math.random() * 360 - 180; // Random initial rotation
                 const rotateEnd = rotateStart + (Math.random() * 720 - 360); // Random end rotation
 
@@ -1260,7 +1260,7 @@
                 submitGuessButton.disabled = true;
                 guessInput.disabled = true;
                 submitGuessButton.classList.add('hidden');
-                
+
                 revealAnswer(false); // Reveal answer even if out of time
                 playAgainButton.classList.remove('hidden');
                 startSadEmojis(); // Sad emojis for running out of time
@@ -1302,7 +1302,7 @@
                     loadCSVData(ultraCsvData);
                     localStorage.setItem('gameDifficulty', 'ultra');
                 }
-                
+
                 // Show timer and start it for ALL difficulties
                 timerDisplay.classList.remove('hidden'); // Make timer visible for all difficulties
                 startTimer();
