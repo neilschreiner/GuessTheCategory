@@ -49,7 +49,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url('GTC-12345QuestionMark.jpg');
+            background-image: url('https://placehold.co/600x400/f4f4f4/000000?text=GTC-12345QuestionMark.jpg'); /* Placeholder image */
             background-repeat: no-repeat;
             background-position: center top; /* Position it at the top center */
             background-size: 80% auto; /* Adjust size to fit well */
@@ -401,7 +401,7 @@
             <button id="hardButton">Hard</button>
             <button id="ultraButton">Ultra</button>
         </div>
-        <h1>CATEGORY!</h1>
+        <h1>Guess the Category!</h1>
         <p class="subtitle">Guess a hidden category or phrase by receiving five clues, one at a time.</p>
 
         <div id="timerDisplay"><span id="timeRemainingText">Seconds left: </span><span id="timeRemainingValue"></span></div>
@@ -432,7 +432,7 @@
 
         <p id="message"></p>
 
-        <img src="GTC-12345QuestionMark.jpg" alt="Question Mark Image" class="bottom-image">
+        <img src="https://placehold.co/600x400/f4f4f4/000000?text=GTC-12345QuestionMark.jpg" alt="Question Mark Image" class="bottom-image">
     </div>
 
     <div id="version-container">
@@ -450,6 +450,7 @@
         let timeRemainingValue;
         let timerInterval;
         let startTime; // To store the precise start time of the timer
+        let totalAllowedTime; // Declare totalAllowedTime globally
 
         document.addEventListener('DOMContentLoaded', () => {
             const body = document.body;
@@ -538,7 +539,7 @@
 "A sweet treat", "Made from cocoa beans", "Comes in bars or pieces", "Can be dark, milk, or white", "Often given as a gift", "Chocolate"
 "A frozen dessert", "Made from milk and sugar", "Comes in many flavors", "Often served in a cone or bowl", "Melts quickly in the sun", "Ice Cream"
 "A popular sport", "Played with a ball and a net", "Two teams compete", "Played on a court", "Michael Jordan was famous for it", "Basketball"
-"A type of transportation", "Has two wheels", "You pedal to move it", "Good for exercise", "Can be ridden on roads or trails", "Has handlebars and a seat", "Bicycle"
+"A two-wheeled vehicle", "Powered by pedaling", "Good for exercise", "Can be ridden on roads or trails", "Has handlebars and a seat", "Bicycle"
 "A place to buy food", "Has many aisles", "Sells fresh produce and packaged goods", "You use a cart to shop", "Often has a bakery and deli", "Grocery Store"
 "A small, winged insect", "Known for making honey", "Lives in a hive", "Pollinates flowers", "Can sting", "Bee"
 "A large, green vegetable", "Has many layers", "Can be eaten raw or cooked", "Often used in salads or soups", "Has a strong smell when cut", "Onion"
@@ -552,9 +553,9 @@
 "A small, green vegetable", "Grows in pods", "Often eaten steamed or boiled", "Sweet taste", "Good source of protein and fiber", "Pea"
 "A large, wild cat", "Known for its stripes", "Native to Asia", "A powerful predator", "Can roar loudly", "Tiger"
 "A game played with cards", "Many different variations", "Can be for one or more players", "Involves strategy and luck", "Often played for fun or money", "Poker"
-"A yellow fruit", "Grows in tropical climates", "Has a curved shape", "Peel before eating", "Favorite food of monkeys", "Good source of potassium", "Banana"
-"A popular board game", "Involves buying and selling properties", "Uses dice and tokens", "Goal is to bankrupt opponents", "Has a famous top hat piece", "Monopoly"
-"A cold, sweet drink", "Often carbonated", "Comes in many flavors", "Served in bottles or cans", "Can be diet or regular", "Soda"
+"A curved yellow fruit", "Grows in bunches", "Peel before eating", "Favorite food of monkeys", "Good source of potassium", "Banana"
+"A board game", "Buy and sell properties", "Try to bankrupt opponents", "Roll dice to move", "Has properties like Park Place and Boardwalk", "Monopoly"
+"A carbonated drink", "Sweet and fizzy", "Comes in many flavors", "Served cold", "Can be diet or regular", "Soda"
 "A large, aquatic mammal", "Lives in the ocean", "Known for its blowhole", "Can be very large", "Sings complex songs underwater", "Whale"
 "A small, flying insect", "Known for biting", "Can spread diseases", "Active in warm weather", "Makes a buzzing sound", "Mosquito"
 "A type of footwear", "Worn on the foot and ankle", "Can be for sports or fashion", "Often made of canvas or leather", "Has laces", "Sneaker"
@@ -580,9 +581,9 @@
 "A genre of music", "Often loud and energetic", "Uses guitars, drums, bass", "Popular with young people", "Artists like Queen and Led Zeppelin", "Rock"
 "A warm drink", "Made from leaves steeped in hot water", "Can be black, green, or herbal", "Often served with milk or lemon", "Popular in the morning or afternoon", "Tea"
 "A large flightless bird", "Native to Africa", "Known for its speed", "Lays the largest eggs", "Can be ridden in some places", "Ostrich"
-"A building for books", "People go there to read or study", "You can borrow books for free", "Has quiet reading areas", "Often has computers and Wi-Fi", "Library"
+"A place for books", "You can borrow stories", "Has quiet reading areas", "Often has computers and Wi-Fi", "A public resource for knowledge", "Library"
 "A round, citrus fruit", "Orange in color", "Can be peeled and eaten", "Used for juice", "Rich in Vitamin C", "Associated with sunshine", "Orange"
-"A place to watch movies", "Has a big screen", "Sells popcorn and candy", "You buy tickets to enter", "Dark inside during the show", "Movie Theater"
+"A place to watch movies", "Has a big screen and comfortable seats", "You buy tickets to enter", "Sells popcorn and drinks", "Dark inside during the show", "Movie Theater"
 "A small green vegetable", "Grows in pods", "Often found in frozen bags", "Sweet when cooked", "A good source of fiber", "Pea"
 "A striped wild cat", "Native to Asia", "A powerful hunter", "Known for its roar", "Largest cat species", "Tiger"
 "A card game", "Involves betting and and strategy", "Players try to get the best hand", "Can be played with friends or in casinos", "Often associated with chips", "Poker"
@@ -730,7 +731,7 @@
 "A linguistic phenomenon", "The study of the historical development of language", "Examines changes in sounds, grammar, and vocabulary", "Reconstructs ancient languages", "Indo-European is a major family", "Historical Linguistics"
 "A celestial object", "A region of spacetime where gravity is so strong that nothing can escape", "Forms from the collapse of massive stars", "Has an event horizon", "Can be supermassive at galaxy centers", "Black Hole"
 "A mathematical structure", "A set of points and connections between them", "Used to model networks and relationships", "Includes nodes and edges", "Used in computer science and social networks", "Graph Theory"
-"A philosophical school of thought", "Emphasizes the individual's existence, freedom, and responsibility", "Focuses on subjective experience", "Kierkegaard, Nietzsche, Sartre were proponents", "Often associated with anxiety and dread", "Existentialism"
+"A philosophical school of thought", "Emphasizes the individual's existence, freedom, and responsibility", "Focuses on subjective experience", "Kiergaard, Nietzsche, Sartre were proponents", "Often associated with anxiety and dread", "Existentialism"
 "A cognitive bias", "Tendency to overestimate one's own abilities", "Often seen in unskilled individuals", "Causes overconfidence", "Named after a study of bank robbers", "Dunning-Kruger Effect"
 "A scientific theory", "Describes the large-scale structure and evolution of the universe", "States that the universe began from a hot, dense state", "Supported by cosmic microwave background radiation", "Led to the expansion of space", "Big Bang Theory"
 "A literary movement", "Emphasized emotion, individualism, and glorification of nature", "Reacted against Enlightenment rationalism", "Late 18th to mid-19th century", "Wordsworth, Byron, Shelley were proponents", "Romanticism"
@@ -878,7 +879,7 @@
 
                 // Stop any running timer
                 clearInterval(timerInterval);
-                // timerDisplay.classList.add('hidden'); // This line was causing the timer to be hidden always
+                timerDisplay.classList.add('hidden'); // Hide timer by default
 
                 body.classList.remove('correct-bg', 'incorrect-bg');
 
@@ -1224,7 +1225,7 @@
 
             // Timer functions
             function startTimer() {
-                const totalAllowedTime = DIFFICULTY_TIME_LIMITS[currentDifficulty];
+                totalAllowedTime = DIFFICULTY_TIME_LIMITS[currentDifficulty]; // Set totalAllowedTime here
                 startTime = Date.now(); // Record the exact start time
 
                 function updateTimer() {
